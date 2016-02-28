@@ -3,10 +3,16 @@ from datetime import date
 from protorpc import messages
 from google.appengine.ext import ndb
 
-FULL_DECK = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,
-            21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,
-            38,39,40,41,42,43,44,45,46]
+FULL_DECK = ['H-A','H-2','H-3','H-4','H-5','H-6','H-7',
+             'H-8','H-9','H-10','H-J','H-Q','H-K',
+             'D-A','D-2','D-3','D-4','D-5','D-6','D-7',
+             'D-8','D-9','D-10','D-J','D-Q','D-K',
+             'C-A','C-2','C-3','C-4','C-5','C-6','C-7',
+             'C-8','C-9','C-10','C-J','C-Q','C-K',
+             'S-A','S-2','S-3','S-4','S-5','S-6','S-7',
+             'S-8','S-9','S-10','S-J','S-Q','S-K']
 
+# - - - - - Objects - - - - -
 
 class User(ndb.Model):
     """User profile"""
@@ -48,13 +54,8 @@ class Game(ndb.Model):
     userB = ndb.KeyProperty(required=True, kind='User')
     userAHand = ndb.PickleProperty(required=True)
     userBHand = ndb.PickleProperty(required=True)
-    userAPoints = ndb.IntegerProperty(required=True, default=0)
-    userBPoints = ndb.IntegerProperty(required=True, default=0)
-    deal = ndb.IntegerProperty(required=True, default=3) # Round - how many cards dealt
-    midDeal = ndb.BooleanProperty(required=True, default=True) # Set to false at end of round
-    notDealer = ndb.KeyProperty(required=True) # Goes first in round
     nextMove = ndb.KeyProperty(required=True) # The User whose turn it is
-    faceUpCard = ndb.IntegerProperty(required=True) # Draw card showing
+    faceUpCard = ndb.StringProperty(required=True) # Draw card showing
     gameOver = ndb.BooleanProperty(required=True, default=False)
     winner = ndb.KeyProperty()
     history = ndb.PickleProperty(required=True)
@@ -64,15 +65,13 @@ class Game(ndb.Model):
         """Creates and returns a new game"""
         game = Game(userA=userA,
                     userB=userB,
-                    deal=deal,
-                    notDealer=userA,
                     nextMove=userA)
 
         # Prepare deck, hands, faceUpCard
         deck = FULL_DECK
-        userAHand, deck = dealHand(3, deck)
-        userBHand, deck = dealHand(3, deck)
-        faceUpCard = turnFaceUpCard()
+        userAHand, deck = dealHand(10, deck)
+        userBHand, deck = dealHand(10, deck)
+        faceUpCard = dealHand(1, deck)
 
         # Set Game card values
         game.deck = deck
@@ -84,6 +83,23 @@ class Game(ndb.Model):
         game.put()
         return game
 
+    def dealHand(deal, deck):
+        """
+        Return list of strings of quantity "deal" and remaining strings in "deck"
+
+        deal: positive integer
+        deck: list of strings
+        """
+        hand = []
+        try:
+            for i in range(deal):
+                card = random.choice(deck)
+                hand.append(card)
+                deck.remove(card)
+            return hand, deck
+        except IndexError:
+            return None, [0]
+
     def to_form(self):
         """Returns a GameForm representation of the Game"""
         form = GameForm(urlsafe_key=self.key.urlsafe(),
@@ -91,13 +107,28 @@ class Game(ndb.Model):
                         userB=self.userA.get().name,
                         nextMove=self.next_move.get().name,
                         faceUpCard=self.faceUpCard,
-                        deal=self.deal,
-                        midDeal=self.midDeal,
-                        userAPoints=self.userAPoints,
-                        userBPoints=self.userBPoints,
                         gameOver=self.game_over)
         if self.winner:
             form.winner = self.winner.get().name
+        return form
+
+    def hand_to_form(self):
+        """Returns a HandForm representation nextMove user's hand"""
+        # retrieve correct hand as list of ints
+        user = self.next_move
+        if user == self.userA:
+            hand = userAHand
+        else:
+            hand = userBHand
+
+        # convert sorted hand to string
+        sortHand = sorted(hand)
+        stringHand = ' '.join(sortHand)
+
+        form = HandForm(urlsafe_key=self.key.urlsafe(),
+                        nextMove=self.next_move.get().name,
+                        hand=stringHand,
+                        faceUpCard=self.faceUpCard)
         return form
 
     def end_game(self, winner):
@@ -127,6 +158,28 @@ class Score(ndb.Model):
                          loser=self.loser.get().name)
 
 
+# - - - - - Forms - - - - -
+
+class UserForm(messages.Message):
+    """User Form"""
+    name = messages.StringField(1, required=True)
+    email = messages.StringField(2)
+    wins = messages.IntegerField(3, required=True)
+    total_played = messages.IntegerField(4, required=True)
+    win_percentage = messages.FloatField(5, required=True)
+
+
+class UserForms(messages.Message):
+    """Container for multiple User Forms"""
+    items = messages.MessageField(UserForm, 1, repeated=True)
+
+
+class NewGameForm(messages.Message):
+    """Used to create a new game"""
+    userA = messages.StringField(1, required=True)
+    userB = messages.StringField(2, required=True)
+
+
 class GameForm(messages.Message):
     """GameForm for outbound game state information"""
     urlsafe_key = messages.StringField(1, required=True)
@@ -134,22 +187,21 @@ class GameForm(messages.Message):
     userB = messages.StringField(3, required=True)
     nextMove = messages.StringField(4, required=True)
     faceUpCard = messages.StringField(5, required=True)
-    deal = messages.IntegerField(6, required=True)
-    midDeal = messages.BooleanField(7, required=True)
-    userAPoints = messages.IntegerField(8, required=True)
-    userBPoints = messages.IntegerField(9, required=True)
-    gameOver = messages.BooleanField(10, required=True)
-    winner = messages.StringField(11)
+    gameOver = messages.BooleanField(6, required=True)
+    winner = messages.StringField(7)
 
 
 class GameForms(messages.Message):
     """Container for multiple GameForm"""
     items = messages.MessageField(GameForm, 1, repeated=True)
 
-class NewGameForm(messages.Message):
-    """Used to create a new game"""
-    userA = messages.StringField(1, required=True)
-    userB = messages.StringField(2, required=True)
+
+class HandForm(messages.Message):
+    """HandForm for outbound game state information"""
+    urlsafe_key = messages.StringField(1, required=True)
+    nextMove = messages.StringField(2, required=True)
+    hand = messages.StringField(3, required=True)
+    faceUpCard = messages.StringField(4, required=True)
 
 
 class MakeMoveForm(messages.Message):
@@ -173,36 +225,3 @@ class ScoreForms(messages.Message):
 class StringMessage(messages.Message):
     """StringMessage-- outbound (single) string message"""
     message = messages.StringField(1, required=True)
-
-
-class UserForm(messages.Message):
-    """User Form"""
-    name = messages.StringField(1, required=True)
-    email = messages.StringField(2)
-    wins = messages.IntegerField(3, required=True)
-    total_played = messages.IntegerField(4, required=True)
-    win_percentage = messages.FloatField(5, required=True)
-
-
-class UserForms(messages.Message):
-    """Container for multiple User Forms"""
-    items = messages.MessageField(UserForm, 1, repeated=True)
-
-
-# move to api.py, then import to models.py
-def dealHand(deal, deck):
-    """
-    Return list of integers of quantity "deal" and remaining integers in "deck"
-
-    deal: positive integer
-    deck: list of positive integers
-    """
-    hand = []
-    try:
-        for i in range(deal):
-            card = random.choice(deck)
-            hand.append(card)
-            deck.remove(card)
-        return hand, deck
-    except IndexError:
-        return None, [0]

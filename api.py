@@ -20,10 +20,9 @@ MAKE_MOVE_REQUEST = endpoints.ResourceContainer(
 USER_REQUEST = endpoints.ResourceContainer(user_name=messages.StringField(1),
                                            email=messages.StringField(2))
 
-MEMCACHE_MOVES_REMAINING = 'MOVES_REMAINING'
 
-@endpoints.api(name='ThreeThirteen', version='v1')
-class ThreeThirteenAPI(remote.Service):
+@endpoints.api(name='StraightGin', version='v1')
+class StraightGinAPI(remote.Service):
     """Game API"""
 
     @endpoints.method(request_message=USER_REQUEST,
@@ -63,11 +62,24 @@ class ThreeThirteenAPI(remote.Service):
                       path='game/{urlsafe_game_key}',
                       name='get_game',
                       http_method='GET')
-    def get_game(self, request):
+    def getGame(self, request):
         """Return the current game state."""
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
         if game:
             return game.to_form()
+        else:
+            raise endpoints.NotFoundException('Game not found!')
+
+    @endpoints.method(request_message=GET_GAME_REQUEST,
+                      response_message=HandForm,
+                      path='game/{urlsafe_game_key}/hand',
+                      name='getHand',
+                      http_method='GET')
+    def getHand(self, request):
+        """Return the hand of player whose turn it is."""
+        game = get_by_urlsafe(request.urlsafe_game_key, Game)
+        if game:
+            return game.hand_to_form()
         else:
             raise endpoints.NotFoundException('Game not found!')
 

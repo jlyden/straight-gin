@@ -1,15 +1,20 @@
 import random
 
-FULL_DECK = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,
-            21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,
-            38,39,40,41,42,43,44,45,46]
+FULL_DECK = ['H-A','H-2','H-3','H-4','H-5','H-6','H-7',
+             'H-8','H-9','H-10','H-J','H-Q','H-K',
+             'D-A','D-2','D-3','D-4','D-5','D-6','D-7',
+             'D-8','D-9','D-10','D-J','D-Q','D-K',
+             'C-A','C-2','C-3','C-4','C-5','C-6','C-7',
+             'C-8','C-9','C-10','C-J','C-Q','C-K',
+             'S-A','S-2','S-3','S-4','S-5','S-6','S-7',
+             'S-8','S-9','S-10','S-J','S-Q','S-K']
 
 def dealHand(deal, deck):
     """
-    Return list of integers of quantity "deal" and remaining integers in "deck"
-
+    Return list of strings of quantity "deal" and remaining strings in "deck"
+    
     deal: positive integer
-    deck: list of positive integers
+    deck: list of strings
     """
     hand = []
     try:

@@ -24,9 +24,12 @@ https://github.com/udacity/FSND-P4-Design-A-Game/blob/master/Project-Description
 
 --------------------------------------
 
-Build Dict of Card-Ints assigned to Representation
 Build Logic of verifying winning hand - or let other player check
+
 MakeMoveForm - edit per game logic!
+
+DONE hand_to_form()
+DONE HandForm
 
 Game Logic
  - refreshPlace - report hand of nextMove
@@ -60,6 +63,24 @@ DONE - Game - rename user_x, user_o
             - edit new_game & to_form & end_game
 
 --------------------------------------
+Gin
+
+H D S C
+K Q J 10 9 8 7 6 5 4 3 2 A
+Cards displayed to user as Suit-Value (i.e. H-6)
+
+Each card also associated with int 1-52
+At beginning of game, full deck available
+
+Round:
+Deal X cards to each player
+Flip top card and show
+Player chooses top card or drawPile
+Player discards (and optionally "goes out")
+Alternate player turns until someone goes out
+Verify hand once player goes out
+
+-----------------------
 313
 
 H D S C
@@ -72,18 +93,3 @@ Each card also associated with int 1-46
 At beginning of each hand, full deck available (11 * 4) + 2 = 46 cards
 RandNum%46 = card dealt
 if that card already dealt, try again
-
-"Card" object with a Boolean flag for dealt
-
-"Hand" object to keep track of cards
-
-"Game" object
-
-Round:
-Deal X cards to each player
-Flip top card and show
-Player chooses top card or drawPile
-Player discards (and optionally "goes out")
-Alternate player turns until someone goes out
-Verify hand once player goes out
-
