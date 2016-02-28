@@ -24,7 +24,14 @@ https://github.com/udacity/FSND-P4-Design-A-Game/blob/master/Project-Description
 
 --------------------------------------
 
-Build Logic of verifying winning hand - or let other player check
+Rule modifications:
+player who validly goes OUT is winner
+player who invalidly attempts to go OUT is loser
+if neither player can go OUT before deck runs out,
+player with lower deadwood score (where face cards != 10) is winner
+
+
+DONE? Build Logic of verifying winning hand
 
 DONE MakeMoveForm - edit per game logic!
 
@@ -43,7 +50,6 @@ DONE   6. game updates user's hand and faceUpCard with discard
 DONE   7a. if !out, game reports nextMove user's hand w/ dict representation
         and flip nextMove
    7b. elif out, game verifies user's hand as winner
-   7c. alt, other user gets to verify hand (save on logic)
 
 newRound
    

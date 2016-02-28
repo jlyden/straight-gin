@@ -1,4 +1,5 @@
-import random
+# models for StraightGinAPI
+
 import constants
 from utils import dealHand
 from datetime import date

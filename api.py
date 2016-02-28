@@ -1,3 +1,5 @@
+# API & game logic for StraightGinAPI
+
 import logging
 import endpoints
 import random
@@ -9,7 +11,7 @@ from google.appengine.api import taskqueue
 from models import User, Game, Score
 from models import StringMessage, NewGameForm, GameForm, MoveForm,\
     ScoreForms, GameForms, UserForm, UserForms, HandForm
-from utils import get_by_urlsafe, dealHand
+from utils import get_by_urlsafe, dealHand, testHand
 
 NEW_GAME_REQUEST = endpoints.ResourceContainer(NewGameForm)
 GET_GAME_REQUEST = endpoints.ResourceContainer(
@@ -51,7 +53,7 @@ class StraightGinAPI(remote.Service):
         userB = User.query(User.name == request.userB).get()
         if not userA and userB:
             raise endpoints.NotFoundException(
-                    'One of users with that name does not exist!')
+                    'One of those users does not exist!')
 
         game = Game.newGame(userA.key, userB.key)
         return game.toForm()
@@ -119,6 +121,11 @@ class StraightGinAPI(remote.Service):
                 textMove = 'DrawCard'
                 game.deck = deck
             # TODO else out of cards! game over
+            else:
+                # check both players' hands
+                penaltyA = testHand(game.userAHand)
+                penaltyB = testHand(game.userBHand)
+                if penaltyA = None
 
         else:
             raise endpoints.BadRequestException('Invalid move! Enter 1 to take '
