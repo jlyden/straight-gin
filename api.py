@@ -8,7 +8,7 @@ from google.appengine.api import taskqueue
 
 from models import User, Game, Score
 from models import StringMessage, NewGameForm, GameForm, MakeMoveForm,\
-    ScoreForms, GameForms, UserForm, UserForms
+    ScoreForms, GameForms, UserForm, UserForms, HandForm
 from utils import get_by_urlsafe, check_winner, check_full
 
 NEW_GAME_REQUEST = endpoints.ResourceContainer(NewGameForm)
@@ -155,4 +155,4 @@ class StraightGinAPI(remote.Service):
                                     Score.loser == user.key))
         return ScoreForms(items=[score.to_form() for score in scores])
 
-api = endpoints.api_server([ThreeThirteenAPI])
+api = endpoints.api_server([StraightGinAPI])
