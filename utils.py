@@ -31,3 +31,41 @@ def get_by_urlsafe(urlsafe, model):
     if not isinstance(entity, model):
         raise ValueError('Incorrect Kind')
     return entity
+
+
+def dealHand(deal, deck):
+    """
+    Return list of strings of quantity "deal" and remaining strings in "deck"
+
+    deal: positive integer
+    deck: list of strings
+    """
+    hand = []
+    try:
+        for i in range(deal):
+            card = random.choice(deck)
+            hand.append(card)
+            deck.remove(card)
+        return hand, deck
+    except IndexError:
+        return None, [0]
+
+
+def testHand(hand):
+    """
+    Determine if this is winning hand in StraightGin
+
+    hand: list of strings
+
+    Returns bool
+    """
+    # sort hand
+    # first split by suit
+
+    # test if there are at least 3 cards of each suit
+    # if not, FALSE
+    # test if the cards in each suit are sequential (a run)
+    # if x-1 is in string, if x+1 is in string
+    # if not, test if multiples found in other suits
+    # if not, FALSE
+    # if so, TRUE

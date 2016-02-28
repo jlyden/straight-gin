@@ -7,9 +7,9 @@ from google.appengine.ext import ndb
 from google.appengine.api import taskqueue
 
 from models import User, Game, Score
-from models import StringMessage, NewGameForm, GameForm, MakeMoveForm,\
+from models import StringMessage, NewGameForm, GameForm, MoveForm,\
     ScoreForms, GameForms, UserForm, UserForms, HandForm
-from utils import get_by_urlsafe
+from utils import get_by_urlsafe, dealHand
 
 NEW_GAME_REQUEST = endpoints.ResourceContainer(NewGameForm)
 GET_GAME_REQUEST = endpoints.ResourceContainer(
@@ -92,7 +92,7 @@ class StraightGinAPI(remote.Service):
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
         if not game:
             raise endpoints.NotFoundException('Game not found')
-        if game.game_over:
+        if game.gameOver:
             raise endpoints.NotFoundException('Game already over')
 
         user = User.query(User.name == request.userName).get()
@@ -114,9 +114,12 @@ class StraightGinAPI(remote.Service):
             textMove = 'FaceUpCard'
         elif move == '2':
             drawCard, deck = game.dealHand(1, game.deck)
-            hand.append(drawCard)
-            textMove = 'DrawCard'
-            game.deck = deck
+            if drawCard != None:
+                hand.append(drawCard)
+                textMove = 'DrawCard'
+                game.deck = deck
+            # TODO else out of cards! game over
+
         else:
             raise endpoints.BadRequestException('Invalid move! Enter 1 to take '
                                         'face up card or 2 to draw from pile.')
@@ -140,7 +143,7 @@ class StraightGinAPI(remote.Service):
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
         if not game:
             raise endpoints.NotFoundException('Game not found')
-        if game.game_over:
+        if game.gameOver:
             raise endpoints.NotFoundException('Game already over')
 
         user = User.query(User.name == request.userName).get()
@@ -180,11 +183,11 @@ class StraightGinAPI(remote.Service):
 
     @endpoints.method(response_message=ScoreForms,
                       path='scores',
-                      name='get_scores',
+                      name='getScores',
                       http_method='GET')
     def getScores(self, request):
         """Return all scores"""
-        return ScoreForms(items=[score.to_form() for score in Score.query()])
+        return ScoreForms(items=[score.toForm() for score in Score.query()])
 
     @endpoints.method(request_message=USER_REQUEST,
                       response_message=ScoreForms,

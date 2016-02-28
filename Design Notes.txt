@@ -26,21 +26,21 @@ https://github.com/udacity/FSND-P4-Design-A-Game/blob/master/Project-Description
 
 Build Logic of verifying winning hand - or let other player check
 
-MakeMoveForm - edit per game logic!
+DONE MakeMoveForm - edit per game logic!
 
 Game Logic
  - getHand - report hand of nextMove
 
  - each move -> startMove and endMove
-startMove
+DONEstartMove
    2. user inputs faceUpCard or drawPile
    3. game updates user's hand and deck (drawPile)
    4. game reports user's updated hand w/ dict representation
 
 endMove
-   5. user inputs discard and flag if going out
-   6. game updates user's hand and faceUpCard with discard
-   7a. if !out, game reports nextMove user's hand w/ dict representation
+DONE   5. user inputs discard and flag if going out
+DONE   6. game updates user's hand and faceUpCard with discard
+DONE   7a. if !out, game reports nextMove user's hand w/ dict representation
         and flip nextMove
    7b. elif out, game verifies user's hand as winner
    7c. alt, other user gets to verify hand (save on logic)

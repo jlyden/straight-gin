@@ -1,16 +1,9 @@
 import random
+import constants
+from utils import dealHand
 from datetime import date
 from protorpc import messages
 from google.appengine.ext import ndb
-
-FULL_DECK = ['H-A','H-2','H-3','H-4','H-5','H-6','H-7',
-             'H-8','H-9','H-10','H-J','H-Q','H-K',
-             'D-A','D-2','D-3','D-4','D-5','D-6','D-7',
-             'D-8','D-9','D-10','D-J','D-Q','D-K',
-             'C-A','C-2','C-3','C-4','C-5','C-6','C-7',
-             'C-8','C-9','C-10','C-J','C-Q','C-K',
-             'S-A','S-2','S-3','S-4','S-5','S-6','S-7',
-             'S-8','S-9','S-10','S-J','S-Q','S-K']
 
 # - - - - - Objects - - - - -
 
@@ -69,7 +62,7 @@ class Game(ndb.Model):
                     active=userA)
 
         # Prepare deck, hands, faceUpCard
-        deck = FULL_DECK
+        deck = constants.FULL_DECK
         userAHand, deck = dealHand(10, deck)
         userBHand, deck = dealHand(10, deck)
         faceUpCard = dealHand(1, deck)
@@ -84,23 +77,6 @@ class Game(ndb.Model):
         game.put()
         return game
 
-    def dealHand(deal, deck):
-        """
-        Return list of strings of quantity "deal" and remaining strings in "deck"
-
-        deal: positive integer
-        deck: list of strings
-        """
-        hand = []
-        try:
-            for i in range(deal):
-                card = random.choice(deck)
-                hand.append(card)
-                deck.remove(card)
-            return hand, deck
-        except IndexError:
-            return None, [0]
-
     def toForm(self):
         """Returns a GameForm representation of the Game"""
         form = GameForm(urlsafe_key=self.key.urlsafe(),
@@ -108,7 +84,7 @@ class Game(ndb.Model):
                         userB=self.userA.get().name,
                         active=self.active.get().name,
                         faceUpCard=self.faceUpCard,
-                        gameOver=self.game_over)
+                        gameOver=self.gameOver)
         if self.winner:
             form.winner = self.winner.get().name
         return form
