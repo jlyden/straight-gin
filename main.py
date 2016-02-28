@@ -19,7 +19,7 @@ import logging
 import webapp2
 from google.appengine.api import mail, app_identity
 from google.appengine.ext import ndb
-from api import TicTacToeAPI
+from api import StraightGinAPI
 from utils import get_by_urlsafe
 
 from models import User, Game
@@ -54,12 +54,6 @@ class SendReminderEmail(webapp2.RequestHandler):
                                body)
 
 
-class UpdateAverageMovesRemaining(webapp2.RequestHandler):
-    def post(self):
-        """Update game listing announcement in memcache."""
-        TicTacToeAPI._cache_average_attempts()
-        self.response.set_status(204)
-
 class SendMoveEmail(webapp2.RequestHandler):
     def post(self):
         """Send an email to a User that it is their turn"""
@@ -79,6 +73,5 @@ class SendMoveEmail(webapp2.RequestHandler):
 
 app = webapp2.WSGIApplication([
     ('/crons/send_reminder', SendReminderEmail),
-    ('/tasks/cache_average_attempts', UpdateAverageMovesRemaining),
     ('/tasks/send_move_email', SendMoveEmail),
 ], debug=True)

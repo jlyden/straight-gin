@@ -23,7 +23,7 @@ USER_REQUEST = endpoints.ResourceContainer(userName=messages.StringField(1),
                                            email=messages.StringField(2))
 
 
-@endpoints.api(name='StraightGin', version='v1')
+@endpoints.api(name='straightGin', version='v1')
 class StraightGinAPI(remote.Service):
     """Game API"""
 
@@ -226,7 +226,7 @@ class StraightGinAPI(remote.Service):
     @endpoints.method(request_message=USER_REQUEST,
                       response_message=ScoreForms,
                       path='scores/user/{userName}',
-                      name='get_user_scores',
+                      name='getUserScores',
                       http_method='GET')
     def getUserScores(self, request):
         """Returns all of an individual User's scores"""

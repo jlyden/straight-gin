@@ -51,6 +51,7 @@ class Game(ndb.Model):
     active = ndb.KeyProperty(required=True) # The User whose turn it is
     faceUpCard = ndb.StringProperty(required=True) # Draw card showing
     midMove = ndb.BooleanProperty(required=True, default=False)
+    instructions = ndb.StringProperty()
     gameOver = ndb.BooleanProperty(required=True, default=False)
     winner = ndb.KeyProperty()
     history = ndb.PickleProperty(required=True)
@@ -112,7 +113,7 @@ class Game(ndb.Model):
         form = HandForm(urlsafe_key=self.key.urlsafe(),
                         active=self.active.get().name,
                         hand=stringHand,
-                        faceUpCard=self.faceUpCard
+                        faceUpCard=self.faceUpCard,
                         instructions=instructions)
         return form
 
