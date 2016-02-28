@@ -120,13 +120,27 @@ class StraightGinAPI(remote.Service):
                 hand.append(drawCard)
                 textMove = 'DrawCard'
                 game.deck = deck
-            # TODO else out of cards! game over
+            # otherwise, out of cards - game automatically ends
             else:
                 # check both players' hands
                 penaltyA = testHand(game.userAHand)
                 penaltyB = testHand(game.userBHand)
-                if penaltyA = None
-
+                if penaltyA < penaltyB:
+                    game.end_game(game.userA)
+                    if game.active == game.userA:
+                        textMove = 'Won'
+                    else:
+                        textMove = 'Lost'
+                elif penaltyB < penaltyA:
+                    game.end_game(game.userB)
+                    if game.active == game.userB:
+                        textMove = 'Won'
+                    else:
+                        textMove = 'Lost'
+                # tie goes to active player
+                else:
+                    game.end_game(game.active)
+                    textMove = 'Won'
         else:
             raise endpoints.BadRequestException('Invalid move! Enter 1 to take '
                                         'face up card or 2 to draw from pile.')
@@ -134,10 +148,12 @@ class StraightGinAPI(remote.Service):
         # Append move to the history
         game.history.append((user.name, textMove))
 
-        game.midMove = True
-
-        game.put()
-        return game.handToForm()
+        if game.gameOver == False:
+            game.midMove = True
+            game.put()
+            return game.handToForm()
+        else:
+            return game.Form()
 
 
     @endpoints.method(request_message=MOVE_REQUEST,
@@ -158,7 +174,6 @@ class StraightGinAPI(remote.Service):
             raise endpoints.BadRequestException('It\'s not your turn!')
 
         # get hand of current player
-        # are these pointers?
         if game.active == game.userA:
             hand = game.userAHand
         else:
@@ -181,9 +196,12 @@ class StraightGinAPI(remote.Service):
         game.midMove = False
 
         # if player is going out
-        if move[1]:
-            # no clue - fill in logic later
-            pass
+        if move[1] == 'OUT':
+            penalty = testHand(hand)
+            if penalty == 0:
+                game.end_game(game.active)
+                textMove = 'Won'
+                game.history.append((game.active.get().name, textMove))
 
         game.put()
         return game.Form()
