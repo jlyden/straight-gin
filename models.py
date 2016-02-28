@@ -3,6 +3,10 @@ from datetime import date
 from protorpc import messages
 from google.appengine.ext import ndb
 
+FULL_DECK = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,
+            21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,
+            38,39,40,41,42,43,44,45,46]
+
 
 class User(ndb.Model):
     """User profile"""
@@ -39,21 +43,43 @@ class User(ndb.Model):
 
 class Game(ndb.Model):
     """Game object"""
-    board = ndb.PickleProperty(required=True)
-    next_move = ndb.KeyProperty(required=True) # The User whose turn it is
-    user_x = ndb.KeyProperty(required=True, kind='User')
-    user_o = ndb.KeyProperty(required=True, kind='User')
-    game_over = ndb.BooleanProperty(required=True, default=False)
+    deck = ndb.PickleProperty(required=True)
+    userA = ndb.KeyProperty(required=True, kind='User')
+    userB = ndb.KeyProperty(required=True, kind='User')
+    userAHand = ndb.PickleProperty(required=True)
+    userBHand = ndb.PickleProperty(required=True)
+    userAPoints = ndb.IntegerProperty(required=True, default=0)
+    userBPoints = ndb.IntegerProperty(required=True, default=0)
+    deal = ndb.IntegerProperty(required=True, default=3) # Round - how many cards dealt
+    midDeal = ndb.BooleanProperty(required=True, default=True) # Set to false at end of round
+    notDealer = ndb.KeyProperty(required=True) # Goes first in round
+    nextMove = ndb.KeyProperty(required=True) # The User whose turn it is
+    faceUpCard = ndb.IntegerProperty(required=True) # Draw card showing
+    gameOver = ndb.BooleanProperty(required=True, default=False)
     winner = ndb.KeyProperty()
     history = ndb.PickleProperty(required=True)
 
     @classmethod
-    def new_game(cls, user_x, user_o):
+    def new_game(cls, userA, userB):
         """Creates and returns a new game"""
-        game = Game(user_x=user_x,
-                    user_o=user_o,
-                    next_move=user_x)
-        game.board = ['' for _ in range(9)]
+        game = Game(userA=userA,
+                    userB=userB,
+                    deal=deal,
+                    notDealer=userA,
+                    nextMove=userA)
+
+        # Prepare deck, hands, faceUpCard
+        deck = FULL_DECK
+        userAHand, deck = dealHand(3, deck)
+        userBHand, deck = dealHand(3, deck)
+        faceUpCard = turnFaceUpCard()
+
+        # Set Game card values
+        game.deck = deck
+        game.userAHand = userAHand
+        game.userBHand = userBHand
+        game.faceUpCard = faceUpCard
+
         game.history = []
         game.put()
         return game
@@ -61,11 +87,15 @@ class Game(ndb.Model):
     def to_form(self):
         """Returns a GameForm representation of the Game"""
         form = GameForm(urlsafe_key=self.key.urlsafe(),
-                        board = str(self.board),
-                        user_x=self.user_x.get().name,
-                        user_o=self.user_o.get().name,
-                        next_move=self.next_move.get().name,
-                        game_over=self.game_over)
+                        userA=self.userA.get().name,
+                        userB=self.userA.get().name,
+                        nextMove=self.next_move.get().name,
+                        faceUpCard=self.faceUpCard,
+                        deal=self.deal,
+                        midDeal=self.midDeal,
+                        userAPoints=self.userAPoints,
+                        userBPoints=self.userBPoints,
+                        gameOver=self.game_over)
         if self.winner:
             form.winner = self.winner.get().name
         return form
@@ -75,7 +105,7 @@ class Game(ndb.Model):
         self.winner = winner
         self.game_over = True
         self.put()
-        loser = self.user_o if winner == self.user_x else self.user_x
+        loser = self.userB if winner == self.userA else self.userA
         # Add the game to the score 'board'
         score = Score(date=date.today(), winner=winner, loser=loser)
         score.put()
@@ -100,12 +130,16 @@ class Score(ndb.Model):
 class GameForm(messages.Message):
     """GameForm for outbound game state information"""
     urlsafe_key = messages.StringField(1, required=True)
-    board = messages.StringField(2, required=True)
-    user_x = messages.StringField(3, required=True)
-    user_o = messages.StringField(4, required=True)
-    next_move = messages.StringField(5, required=True)
-    game_over = messages.BooleanField(6, required=True)
-    winner = messages.StringField(7)
+    userA = messages.StringField(2, required=True)
+    userB = messages.StringField(3, required=True)
+    nextMove = messages.StringField(4, required=True)
+    faceUpCard = messages.StringField(5, required=True)
+    deal = messages.IntegerField(6, required=True)
+    midDeal = messages.BooleanField(7, required=True)
+    userAPoints = messages.IntegerField(8, required=True)
+    userBPoints = messages.IntegerField(9, required=True)
+    gameOver = messages.BooleanField(10, required=True)
+    winner = messages.StringField(11)
 
 
 class GameForms(messages.Message):
@@ -114,8 +148,8 @@ class GameForms(messages.Message):
 
 class NewGameForm(messages.Message):
     """Used to create a new game"""
-    user_x = messages.StringField(1, required=True)
-    user_o = messages.StringField(2, required=True)
+    userA = messages.StringField(1, required=True)
+    userB = messages.StringField(2, required=True)
 
 
 class MakeMoveForm(messages.Message):
@@ -153,3 +187,22 @@ class UserForm(messages.Message):
 class UserForms(messages.Message):
     """Container for multiple User Forms"""
     items = messages.MessageField(UserForm, 1, repeated=True)
+
+
+# move to api.py, then import to models.py
+def dealHand(deal, deck):
+    """
+    Return list of integers of quantity "deal" and remaining integers in "deck"
+
+    deal: positive integer
+    deck: list of positive integers
+    """
+    hand = []
+    try:
+        for i in range(deal):
+            card = random.choice(deck)
+            hand.append(card)
+            deck.remove(card)
+        return hand, deck
+    except IndexError:
+        return None, [0]

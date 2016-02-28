@@ -23,23 +23,42 @@ https://github.com/udacity/FSND-P4-Design-A-Game/blob/master/Project-Description
  - Improve notifications
 
 --------------------------------------
-Existing Classes from TicTacToe models.py:
 
-no changes?
-User, Score, ScoreForm(s), StringMessage, UserForm(s)
-
-Game - remove user_x, user_o
-     - change board to deck [pickle-able list of available cards]
-     - add faceUpCard
-     - add p1 & p2 hands - pickle-able lists
-     - add p1 & p2 points - ints
-     - edit new_game & to_form & end_game
-
-GameForm - edit per Game 
-NewGameForm - edit per Game
+Build Dict of Card-Ints assigned to Representation
+Build Logic of verifying winning hand - or let other player check
 MakeMoveForm - edit per game logic!
 
-     
+Game Logic
+ - refreshPlace - report hand of nextMove
+ - each move -> startMove and endMove
+
+startMove
+   2. user inputs faceUpCard or drawPile
+   3. game updates user's hand and deck (drawPile)
+   4. game reports user's updated hand w/ dict representation
+
+endMove
+   5. user inputs discard and flag if going out
+   6. game updates user's hand and faceUpCard with discard
+   7a. if !out, game reports nextMove user's hand w/ dict representation
+        and flip nextMove
+   7b. elif out, game verifies user's hand as winner
+   7c. alt, other user gets to verify hand (save on logic)
+
+newRound
+   
+DONE - Default list of full deck
+DONE - def dealHand()
+DONE - changes in models.py
+DONE - Game - rename user_x, user_o
+            - change board to deck [pickle-able list of ints - available cards]
+            - add faceUpCard
+            - add deal - int for "round"
+            - add dealer - at end of round, flip
+            - add p1 & p2 hands - pickle-able lists
+            - add p1 & p2 points - ints
+            - edit new_game & to_form & end_game
+
 --------------------------------------
 313
 

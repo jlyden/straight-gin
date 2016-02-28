@@ -1,5 +1,6 @@
 import logging
 import endpoints
+import random
 from protorpc import remote, messages
 from google.appengine.api import memcache
 from google.appengine.ext import ndb
@@ -21,9 +22,10 @@ USER_REQUEST = endpoints.ResourceContainer(user_name=messages.StringField(1),
 
 MEMCACHE_MOVES_REMAINING = 'MOVES_REMAINING'
 
-@endpoints.api(name='tic_tac_toe', version='v1')
-class TicTacToeAPI(remote.Service):
+@endpoints.api(name='ThreeThirteen', version='v1')
+class ThreeThirteenAPI(remote.Service):
     """Game API"""
+
     @endpoints.method(request_message=USER_REQUEST,
                       response_message=StringMessage,
                       path='user',
@@ -39,16 +41,6 @@ class TicTacToeAPI(remote.Service):
         return StringMessage(message='User {} created!'.format(
                 request.user_name))
 
-    @endpoints.method(response_message=UserForms,
-                      path='user/ranking',
-                      name='get_user_rankings',
-                      http_method='GET')
-    def get_user_rankings(self, request):
-        """Return all Users ranked by their win percentage"""
-        users = User.query(User.total_played > 0).fetch()
-        users = sorted(users, key=lambda x: x.win_percentage, reverse=True)
-        return UserForms(items=[user.to_form() for user in users])
-
     @endpoints.method(request_message=NEW_GAME_REQUEST,
                       response_message=GameForm,
                       path='game',
@@ -56,13 +48,13 @@ class TicTacToeAPI(remote.Service):
                       http_method='POST')
     def new_game(self, request):
         """Creates new game"""
-        user_x = User.query(User.name == request.user_x).get()
-        user_o = User.query(User.name == request.user_o).get()
-        if not user_x and user_o:
+        userA = User.query(User.name == request.userA).get()
+        userB = User.query(User.name == request.userB).get()
+        if not userA and userB:
             raise endpoints.NotFoundException(
                     'One of users with that name does not exist!')
 
-        game = Game.new_game(user_x.key, user_o.key)
+        game = Game.new_game(userA.key, userB.key)
 
         return game.to_form()
 
@@ -76,38 +68,6 @@ class TicTacToeAPI(remote.Service):
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
         if game:
             return game.to_form()
-        else:
-            raise endpoints.NotFoundException('Game not found!')
-
-    @endpoints.method(request_message=USER_REQUEST,
-                      response_message=GameForms,
-                      path='user/games',
-                      name='get_user_games',
-                      http_method='GET')
-    def get_user_games(self, request):
-        """Return all User's active games"""
-        user = User.query(User.name == request.user_name).get()
-        if not user:
-            raise endpoints.BadRequestException('User not found!')
-        games = Game.query(ndb.OR(Game.user_x == user.key,
-                                  Game.user_o == user.key)).\
-            filter(Game.game_over == False)
-        return GameForms(items=[game.to_form() for game in games])
-
-    @endpoints.method(request_message=GET_GAME_REQUEST,
-                      response_message=StringMessage,
-                      path='game/{urlsafe_game_key}',
-                      name='cancel_game',
-                      http_method='DELETE')
-    def cancel_game(self, request):
-        """Delete a game. Game must not have ended to be deleted"""
-        game = get_by_urlsafe(request.urlsafe_game_key, Game)
-        if game and not game.game_over:
-            game.key.delete()
-            return StringMessage(message='Game with key: {} deleted.'.
-                                 format(request.urlsafe_game_key))
-        elif game and game.game_over:
-            raise endpoints.BadRequestException('Game is already over!')
         else:
             raise endpoints.NotFoundException('Game not found!')
 
@@ -127,6 +87,8 @@ class TicTacToeAPI(remote.Service):
         user = User.query(User.name == request.user_name).get()
         if user.key != game.next_move:
             raise endpoints.BadRequestException('It\'s not your turn!')
+
+        # Game logic goes here
 
         # Just a dummy signifier, what type of symbol is going down
         x = True if user.key == game.user_x else False
@@ -158,18 +120,6 @@ class TicTacToeAPI(remote.Service):
         game.put()
         return game.to_form()
 
-    @endpoints.method(request_message=GET_GAME_REQUEST,
-                      response_message=StringMessage,
-                      path='game/{urlsafe_game_key}/history',
-                      name='get_game_history',
-                      http_method='GET')
-    def get_game_history(self, request):
-        """Return a Game's move history"""
-        game = get_by_urlsafe(request.urlsafe_game_key, Game)
-        if not game:
-            raise endpoints.NotFoundException('Game not found')
-        return StringMessage(message=str(game.history))
-
     @endpoints.method(response_message=ScoreForms,
                       path='scores',
                       name='get_scores',
@@ -193,25 +143,4 @@ class TicTacToeAPI(remote.Service):
                                     Score.loser == user.key))
         return ScoreForms(items=[score.to_form() for score in scores])
 
-    @endpoints.method(response_message=StringMessage,
-                      path='games/average_attempts',
-                      name='get_average_attempts_remaining',
-                      http_method='GET')
-    def get_average_attempts(self, request):
-        """Get the cached average moves remaining"""
-        return StringMessage(message=memcache.get(MEMCACHE_MOVES_REMAINING) or '')
-
-    @staticmethod
-    def _cache_average_attempts():
-        """Populates memcache with the average moves remaining of Games"""
-        games = Game.query(Game.game_over == False).fetch()
-        if games:
-            count = len(games)
-            total_attempts_remaining = sum([game.attempts_remaining
-                                        for game in games])
-            average = float(total_attempts_remaining)/count
-            memcache.set(MEMCACHE_MOVES_REMAINING,
-                         'The average moves remaining is {:.2f}'.format(average))
-
-
-api = endpoints.api_server([TicTacToeAPI])
+api = endpoints.api_server([ThreeThirteenAPI])
