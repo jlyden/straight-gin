@@ -24,12 +24,12 @@ https://github.com/udacity/FSND-P4-Design-A-Game/blob/master/Project-Description
 
 --------------------------------------
 Test API after step 1.
-Works! - createUser, newGame, getGame, getHand, 
-ahRkZXZ-c3RyYWlnaHRnaW4tMTIzNHIRCxIER2FtZRiAgICAgIDACAw
-jlyden1: C-2 C-5 C-8 D-10 D-3 D-9 H-3 H-8 H-Q S-7; fC-> S-10; 1
-sew214: 
+Works! - createUser, newGame, getGame, getHand, startMove, 
+game - ahRkZXZ-c3RyYWlnaHRnaW4tMTIzNHIRCxIER2FtZRiAgICAgIDACww
+jlyden1: C-8 D-7 D-8 D-A H-8 H-9 H-A S-6 S-A S-Q; 1
+sew214: C-J C-Q D-4 D-9 D-10 S-5 S-8 H-J H-Q H-K; dc-> H-2
 
-startMove error: Unable to parse request content: Message CombinedContainer is missing required field userName
+endMove error: discard w/extra spaces
 
 
 

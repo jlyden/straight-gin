@@ -224,16 +224,20 @@ L = ['H-2', 'H-3', 'H-4', 'H-5', 'H-6', 'H-7', 'C-7', 'S-7', 'C-6', 'S-6']
 
 hands = [A,B,C,D,E,F,G,H,I,J,K,L]
 
-counter = 1
-for hand in hands:
-    if len(hand) != 10:
-        print 'Wrong number of cards: ', len(hand)
-    else:
-        penalty = testHand(hand)
-        if penalty != 0:
-            print 'Hand ', counter, ' fails.'
-            print hand
+def test():
+    counter = 1
+    for hand in hands:
+        if len(hand) != 10:
+            print 'Wrong number of cards: ', len(hand)
         else:
-            print 'Hand ', counter, ' passes.'
-            print 'Penalty: ', penalty
-    counter += 1
+            penalty = testHand(hand)
+            if penalty != 0:
+                print 'Hand ', counter, ' fails.'
+                print hand
+            else:
+                print 'Hand ', counter, ' passes.'
+                print 'Penalty: ', penalty
+        counter += 1
+
+faceUpCard, deck = dealHand(1, FULL_DECK)
+print faceUpCard
