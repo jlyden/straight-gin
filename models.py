@@ -22,7 +22,7 @@ class User(ndb.Model):
         else:
             return 0
 
-    def toForm(self):
+    def userToForm(self):
         return UserForm(name=self.name,
                         email=self.email,
                         wins=self.wins,
@@ -79,7 +79,7 @@ class Game(ndb.Model):
         game.put()
         return game
 
-    def toForm(self):
+    def gameToForm(self):
         """Returns a GameForm representation of the Game"""
         # convert faceUpCard to string
         stringCard = ' '.join(self.faceUpCard)
@@ -105,7 +105,7 @@ class Game(ndb.Model):
 
         # sort hand and convert to string
         sortHand = sorted(hand)
-        stringHand = ' '.join(sortHand)
+        stringHand = ' '.join(str(card) for card in sortHand)
 
         # convert faceUpCard to string
         stringCard = ' '.join(self.faceUpCard)
@@ -144,7 +144,7 @@ class Score(ndb.Model):
     winner = ndb.KeyProperty(required=True)
     loser = ndb.KeyProperty(required=True)
 
-    def toForm(self):
+    def scoreToForm(self):
         return ScoreForm(date=str(self.date),
                          winner=self.winner.get().name,
                          loser=self.loser.get().name)

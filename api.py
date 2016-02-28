@@ -56,7 +56,7 @@ class StraightGinAPI(remote.Service):
                     'One of those users does not exist!')
 
         game = Game.newGame(userA.key, userB.key)
-        return game.toForm()
+        return game.gameToForm()
 
     @endpoints.method(request_message=GET_GAME_REQUEST,
                       response_message=GameForm,
@@ -67,7 +67,7 @@ class StraightGinAPI(remote.Service):
         """Return the current Game state"""
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
         if game:
-            return game.toForm()
+            return game.gameToForm()
         else:
             raise endpoints.NotFoundException('Game not found!')
 
@@ -111,13 +111,13 @@ class StraightGinAPI(remote.Service):
         move = request.move.strip()
         textMove = ''
         if move == '1':
-            hand.append(game.faceUpCard)
-            game.faceUpCard = None
+            hand += game.faceUpCard
+            game.faceUpCard = ''
             textMove = 'FaceUpCard'
         elif move == '2':
             drawCard, deck = game.dealHand(1, game.deck)
             if drawCard != None:
-                hand.append(drawCard)
+                hand += drawCard
                 textMove = 'DrawCard'
                 game.deck = deck
             # otherwise, out of cards - game automatically ends
@@ -221,7 +221,7 @@ class StraightGinAPI(remote.Service):
                       http_method='GET')
     def getScores(self, request):
         """Return all scores"""
-        return ScoreForms(items=[score.toForm() for score in Score.query()])
+        return ScoreForms(items=[score.scoreToForm() for score in Score.query()])
 
     @endpoints.method(request_message=USER_REQUEST,
                       response_message=ScoreForms,
@@ -236,6 +236,6 @@ class StraightGinAPI(remote.Service):
                     'A User with that name does not exist!')
         scores = Score.query(ndb.OR(Score.winner == user.key,
                                     Score.loser == user.key))
-        return ScoreForms(items=[score.toForm() for score in scores])
+        return ScoreForms(items=[score.scoreToForm() for score in scores])
 
 api = endpoints.api_server([StraightGinAPI])
