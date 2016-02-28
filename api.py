@@ -202,6 +202,15 @@ class StraightGinAPI(remote.Service):
                 game.end_game(game.active)
                 textMove = 'Won'
                 game.history.append((game.active.get().name, textMove))
+            else:
+                if game.active != game.userA:
+                    game.end_game(game.userA)
+                    textMove = 'Lost'
+                    game.history.append((game.userB.get().name, textMove))
+                else:
+                    game.end_game(game.userB)
+                    textMove = 'Lost'
+                    game.history.append((game.userA.get().name, textMove))
 
         game.put()
         return game.Form()
