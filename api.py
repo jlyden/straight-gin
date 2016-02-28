@@ -14,10 +14,10 @@ from utils import get_by_urlsafe
 NEW_GAME_REQUEST = endpoints.ResourceContainer(NewGameForm)
 GET_GAME_REQUEST = endpoints.ResourceContainer(
         urlsafe_game_key=messages.StringField(1),)
-MAKE_MOVE_REQUEST = endpoints.ResourceContainer(
-    MakeMoveForm,
+MOVE_REQUEST = endpoints.ResourceContainer(
+    MoveForm,
     urlsafe_game_key=messages.StringField(1),)
-USER_REQUEST = endpoints.ResourceContainer(user_name=messages.StringField(1),
+USER_REQUEST = endpoints.ResourceContainer(userName=messages.StringField(1),
                                            email=messages.StringField(2))
 
 
@@ -28,24 +28,24 @@ class StraightGinAPI(remote.Service):
     @endpoints.method(request_message=USER_REQUEST,
                       response_message=StringMessage,
                       path='user',
-                      name='create_user',
+                      name='createUser',
                       http_method='POST')
-    def create_user(self, request):
+    def createUser(self, request):
         """Create a User. Requires a unique username"""
-        if User.query(User.name == request.user_name).get():
+        if User.query(User.name == request.userName).get():
             raise endpoints.ConflictException(
                     'A User with that name already exists!')
-        user = User(name=request.user_name, email=request.email)
+        user = User(name=request.userName, email=request.email)
         user.put()
         return StringMessage(message='User {} created!'.format(
-                request.user_name))
+                request.userName))
 
     @endpoints.method(request_message=NEW_GAME_REQUEST,
                       response_message=GameForm,
                       path='game',
-                      name='new_game',
+                      name='newGame',
                       http_method='POST')
-    def new_game(self, request):
+    def newGame(self, request):
         """Creates new game"""
         userA = User.query(User.name == request.userA).get()
         userB = User.query(User.name == request.userB).get()
@@ -53,20 +53,19 @@ class StraightGinAPI(remote.Service):
             raise endpoints.NotFoundException(
                     'One of users with that name does not exist!')
 
-        game = Game.new_game(userA.key, userB.key)
-
-        return game.to_form()
+        game = Game.newGame(userA.key, userB.key)
+        return game.toForm()
 
     @endpoints.method(request_message=GET_GAME_REQUEST,
                       response_message=GameForm,
                       path='game/{urlsafe_game_key}',
-                      name='get_game',
+                      name='getGame',
                       http_method='GET')
     def getGame(self, request):
         """Return the current game state."""
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
         if game:
-            return game.to_form()
+            return game.toForm()
         else:
             raise endpoints.NotFoundException('Game not found!')
 
@@ -79,81 +78,127 @@ class StraightGinAPI(remote.Service):
         """Return the hand of player whose turn it is."""
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
         if game:
-            return game.hand_to_form()
+            return game.handToForm()
         else:
             raise endpoints.NotFoundException('Game not found!')
 
-    @endpoints.method(request_message=MAKE_MOVE_REQUEST,
-                      response_message=GameForm,
-                      path='game/{urlsafe_game_key}',
-                      name='make_move',
+    @endpoints.method(request_message=MOVE_REQUEST,
+                      response_message=HandForm,
+                      path='game/{urlsafe_game_key}/startMove',
+                      name='startMove',
                       http_method='PUT')
-    def make_move(self, request):
-        """Makes a move. Returns a game state with message"""
+    def startMove(self, request):
+        """StartMove. Returns mid-move state."""
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
         if not game:
             raise endpoints.NotFoundException('Game not found')
         if game.game_over:
             raise endpoints.NotFoundException('Game already over')
 
-        user = User.query(User.name == request.user_name).get()
-        if user.key != game.next_move:
+        user = User.query(User.name == request.userName).get()
+        if user.key != game.active:
             raise endpoints.BadRequestException('It\'s not your turn!')
 
-        # Game logic goes here
-
-        # Just a dummy signifier, what type of symbol is going down
-        x = True if user.key == game.user_x else False
-
-        move = request.move
-        # Verify move is valid
-        if move < 0 or move > 8:
-            raise endpoints.BadRequestException('Invalid move! Must be between'
-                                                '0 and 8')
-        if game.board[move] != '':
-            raise endpoints.BadRequestException('Invalid move!')
-
-        game.board[move] = 'X' if x else 'O'
-        # Append a move to the history
-        game.history.append(('X' if x else 'O', move))
-        game.next_move = game.user_o if x else game.user_x
-        # winner needs definition!
-        #winner =
-        if not winner:
-            # Just delete the game
-            game.key.delete()
-            raise endpoints.NotFoundException('Tie game, game deleted!')
-        if winner:
-           game.end_game(user.key)
+        # get hand of current player
+        if game.active == game.userA:
+            hand = game.userAHand
         else:
-            # Send reminder email
-            taskqueue.add(url='/tasks/send_move_email',
-                          params={'user_key': game.next_move.urlsafe(),
-                                  'game_key': game.key.urlsafe()})
+            hand = game.userBHand
+
+        # add card to user's hand & update deck (if needed)
+        move = request.move.strip()
+        textMove = ''
+        if move == '1':
+            hand.append(game.faceUpCard)
+            game.faceUpCard = None
+            textMove = 'FaceUpCard'
+        elif move == '2':
+            drawCard, deck = game.dealHand(1, game.deck)
+            hand.append(drawCard)
+            textMove = 'DrawCard'
+            game.deck = deck
+        else:
+            raise endpoints.BadRequestException('Invalid move! Enter 1 to take '
+                                        'face up card or 2 to draw from pile.')
+
+        # Append move to the history
+        game.history.append((user.name, textMove))
+
+        game.midMove = True
+
         game.put()
-        return game.to_form()
+        return game.handToForm()
+
+
+    @endpoints.method(request_message=MOVE_REQUEST,
+                      response_message=HandForm,
+                      path='game/{urlsafe_game_key}/endMove',
+                      name='EndMove',
+                      http_method='PUT')
+    def endMove(self, request):
+        """EndMove. Returns HandForm."""
+        game = get_by_urlsafe(request.urlsafe_game_key, Game)
+        if not game:
+            raise endpoints.NotFoundException('Game not found')
+        if game.game_over:
+            raise endpoints.NotFoundException('Game already over')
+
+        user = User.query(User.name == request.userName).get()
+        if user.key != game.active:
+            raise endpoints.BadRequestException('It\'s not your turn!')
+
+        # get hand of current player
+        # are these pointers?
+        if game.active == game.userA:
+            hand = game.userAHand
+        else:
+            hand = game.userBHand
+
+        move = request.move.split()
+
+        # remove discard from hand and set as faceUpCard
+        hand.remove(move[0])
+        game.faceUpCard = move[0]
+        textMove = 'Discard: %s' % move[0]
+
+        game.history.append((user.name, textMove))
+
+        # reset flags
+        if game.active == game.userA:
+            game.active == game.userB
+        else:
+            game.active == game.userA
+        game.midMove = False
+
+        # if player is going out
+        if move[1]:
+            # no clue - fill in logic later
+            pass
+
+        game.put()
+        return game.Form()
 
     @endpoints.method(response_message=ScoreForms,
                       path='scores',
                       name='get_scores',
                       http_method='GET')
-    def get_scores(self, request):
+    def getScores(self, request):
         """Return all scores"""
         return ScoreForms(items=[score.to_form() for score in Score.query()])
 
     @endpoints.method(request_message=USER_REQUEST,
                       response_message=ScoreForms,
-                      path='scores/user/{user_name}',
+                      path='scores/user/{userName}',
                       name='get_user_scores',
                       http_method='GET')
-    def get_user_scores(self, request):
+    def getUserScores(self, request):
         """Returns all of an individual User's scores"""
-        user = User.query(User.name == request.user_name).get()
+        user = User.query(User.name == request.userName).get()
         if not user:
             raise endpoints.NotFoundException(
                     'A User with that name does not exist!')
         scores = Score.query(ndb.OR(Score.winner == user.key,
                                     Score.loser == user.key))
-        return ScoreForms(items=[score.to_form() for score in scores])
+        return ScoreForms(items=[score.toForm() for score in scores])
 
 api = endpoints.api_server([StraightGinAPI])

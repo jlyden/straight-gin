@@ -28,13 +28,10 @@ Build Logic of verifying winning hand - or let other player check
 
 MakeMoveForm - edit per game logic!
 
-DONE hand_to_form()
-DONE HandForm
-
 Game Logic
- - refreshPlace - report hand of nextMove
- - each move -> startMove and endMove
+ - getHand - report hand of nextMove
 
+ - each move -> startMove and endMove
 startMove
    2. user inputs faceUpCard or drawPile
    3. game updates user's hand and deck (drawPile)
@@ -50,6 +47,8 @@ endMove
 
 newRound
    
+DONE hand_to_form()
+DONE HandForm
 DONE - Default list of full deck
 DONE - def dealHand()
 DONE - changes in models.py
