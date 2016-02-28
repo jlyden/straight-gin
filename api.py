@@ -9,7 +9,7 @@ from google.appengine.api import taskqueue
 from models import User, Game, Score
 from models import StringMessage, NewGameForm, GameForm, MakeMoveForm,\
     ScoreForms, GameForms, UserForm, UserForms, HandForm
-from utils import get_by_urlsafe, check_winner, check_full
+from utils import get_by_urlsafe
 
 NEW_GAME_REQUEST = endpoints.ResourceContainer(NewGameForm)
 GET_GAME_REQUEST = endpoints.ResourceContainer(
@@ -117,8 +117,9 @@ class StraightGinAPI(remote.Service):
         # Append a move to the history
         game.history.append(('X' if x else 'O', move))
         game.next_move = game.user_o if x else game.user_x
-        winner = check_winner(game.board)
-        if not winner and check_full(game.board):
+        # winner needs definition!
+        #winner =
+        if not winner:
             # Just delete the game
             game.key.delete()
             raise endpoints.NotFoundException('Tie game, game deleted!')
