@@ -49,7 +49,7 @@ class Game(ndb.Model):
     userAHand = ndb.PickleProperty(required=True)
     userBHand = ndb.PickleProperty(required=True)
     active = ndb.KeyProperty(required=True) # The User whose turn it is
-    faceUpCard = ndb.StringProperty(required=True) # Draw card showing
+    faceUpCard = ndb.PickleProperty(required=True) # Draw card showing
     midMove = ndb.BooleanProperty(required=True, default=False)
     instructions = ndb.StringProperty()
     gameOver = ndb.BooleanProperty(required=True, default=False)
@@ -67,7 +67,7 @@ class Game(ndb.Model):
         deck = constants.FULL_DECK
         userAHand, deck = dealHand(10, deck)
         userBHand, deck = dealHand(10, deck)
-        faceUpCard = dealHand(1, deck)
+        faceUpCard, deck = dealHand(1, deck)
 
         # Set Game card values
         game.deck = deck
@@ -81,11 +81,14 @@ class Game(ndb.Model):
 
     def toForm(self):
         """Returns a GameForm representation of the Game"""
+        # convert faceUpCard to string
+        stringCard = ' '.join(self.faceUpCard)
+
         form = GameForm(urlsafe_key=self.key.urlsafe(),
                         userA=self.userA.get().name,
-                        userB=self.userA.get().name,
+                        userB=self.userB.get().name,
                         active=self.active.get().name,
-                        faceUpCard=self.faceUpCard,
+                        faceUpCard=stringCard,
                         gameOver=self.gameOver)
         if self.winner:
             form.winner = self.winner.get().name
@@ -96,16 +99,19 @@ class Game(ndb.Model):
         # retrieve correct hand
         user = self.active
         if user == self.userA:
-            hand = userAHand
+            hand = self.userAHand
         else:
-            hand = userBHand
+            hand = self.userBHand
 
         # sort hand and convert to string
         sortHand = sorted(hand)
         stringHand = ' '.join(sortHand)
 
+        # convert faceUpCard to string
+        stringCard = ' '.join(self.faceUpCard)
+
         # return proper instructions
-        if midMove:
+        if self.midMove:
             instructions = 'Enter your discard. If you are ready to go out, also type OUT. Example: D-K OUT'
         else:
             instructions = 'Enter 1 to take face up card or 2 to draw from pile.'
@@ -113,7 +119,7 @@ class Game(ndb.Model):
         form = HandForm(urlsafe_key=self.key.urlsafe(),
                         active=self.active.get().name,
                         hand=stringHand,
-                        faceUpCard=self.faceUpCard,
+                        faceUpCard=stringCard,
                         instructions=instructions)
         return form
 
