@@ -113,35 +113,38 @@ class StraightGinAPI(remote.Service):
         if move == '1':
             faceUpCard = game.faceUpCard
             hand += faceUpCard
+            textMove = 'took FaceUpCard ' + str(game.faceUpCard)
             game.faceUpCard = ['']
-            textMove = 'FaceUpCard'
         elif move == '2':
             drawCard, deck = dealHand(1, game.deck)
+            # if there are still cards left in deck
             if drawCard != None:
                 hand += drawCard
-                textMove = 'DrawCard'
+                textMove = 'took DrawCard ' + str(drawCard)
                 game.deck = deck
-            # otherwise, out of cards - game automatically ends
+            # but if out of cards, game automatically ends
             else:
                 # check both players' hands
                 penaltyA = testHand(game.userAHand)
+                game.penaltyA = penaltyA
                 penaltyB = testHand(game.userBHand)
+                game.penaltyB = penaltyB
                 if penaltyA < penaltyB:
                     game.end_game(game.userA)
                     if game.active == game.userA:
-                        textMove = 'Won'
+                        textMove = 'won with score of ' + str(penaltyA)
                     else:
-                        textMove = 'Lost'
+                        textMove = 'lost with score of ' + str(penaltyA)
                 elif penaltyB < penaltyA:
                     game.end_game(game.userB)
                     if game.active == game.userB:
-                        textMove = 'Won'
+                        textMove = 'won with score of ' + str(penaltyB)
                     else:
-                        textMove = 'Lost'
+                        textMove = 'lost with score of ' + str(penaltyB)
                 # tie goes to active player
                 else:
                     game.end_game(game.active)
-                    textMove = 'Won'
+                    textMove = 'won with score of ' + str(penaltyA)
         else:
             raise endpoints.BadRequestException('Invalid move! Enter 1 to take '
                                         'face up card or 2 to draw from pile.')
@@ -175,24 +178,25 @@ class StraightGinAPI(remote.Service):
             raise endpoints.BadRequestException('It\'s not your turn!')
 
         # get hand of current player
+        active = ''
         if game.active == game.userA:
             hand = game.userAHand
+            active = 'A'
         else:
             hand = game.userBHand
+            active = 'B'
 
         move = request.move.split()
 
         # remove discard from hand and set as faceUpCard
         if not move[0] in hand:
-            raise endpoints.BadRequestException('That card isn\'t in your hand!',
-                    ' Enter your discard. If you are ready to go out, also type OUT.',
-                    ' Example: D-K OUT')
+            raise endpoints.BadRequestException('That card isn\'t in your hand! Enter your discard. If you are ready to go out, also type OUT. Example: D-K OUT')
         else:
             hand.remove(move[0])
             if game.faceUpCard != []:
                 game.faceUpCard = []
             game.faceUpCard.append(''.join(move[0]))
-            textMove = 'Discard: %s' % move[0]
+            textMove = 'discards %s' % move[0]
 
             game.history.append((user.name, textMove))
 
@@ -207,22 +211,48 @@ class StraightGinAPI(remote.Service):
             if len(move) == 2:
                 if move[1] == 'OUT':
                     penalty = testHand(hand)
+                    # if penalty = 0, active player successfully went out
                     if penalty == 0:
                         game.endGame(game.active)
-                        textMove = 'Won'
+                        textMove = 'won with score of ' + str(penalty)
+                        if active == 'A':
+                            game.penaltyA = penalty
+                            game.penaltyB = testHand(game.userBHand)
+                        else:
+                            game.penaltyB = penalty
+                            game.penaltyA = testHand(game.userAHand)
                         game.history.append((game.active.get().name, textMove))
+                    # otherwise active player UNsuccessfully went out, and automatically loses
+                    # figure out who the active player is - other player wins
                     else:
                         if game.active != game.userA:
                             game.endGame(game.userA)
-                            textMove = 'Lost'
+                            textMove = 'lost with score of ' + str(penalty)
+                            game.penaltyB = penalty
+                            game.penaltyA = testHand(game.userAHand)
                             game.history.append((game.userB.get().name, textMove))
                         else:
                             game.endGame(game.userB)
-                            textMove = 'Lost'
+                            textMove = 'lost with score of ' + str(penalty)
+                            game.penaltyA = penalty
+                            game.penaltyB = testHand(game.userBHand)
                             game.history.append((game.userA.get().name, textMove))
 
         game.put()
         return game.gameToForm()
+
+    @endpoints.method(request_message=GET_GAME_REQUEST,
+                      response_message=GameRecordForm,
+                      path='game/{urlsafe_game_key}/record',
+                      name='getGameRecord',
+                      http_method='GET')
+    def getGameRecord(self, request):
+        """Return the Record of a completed game"""
+        game = get_by_urlsafe(request.urlsafe_game_key, Game)
+        if game:
+            return game.gameRecordtoForm()
+        else:
+            raise endpoints.NotFoundException('Game not found!')
 
     @endpoints.method(response_message=ScoreForms,
                       path='scores',

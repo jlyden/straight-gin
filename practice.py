@@ -261,3 +261,8 @@ def endMove(move, hand):
     return faceUpCard, hand
 
 susan = ['H-9', 'C-9', 'C-J', 'C-Q', 'S-J', 'S-Q', 'D-7', 'D-A', 'H-A', 'S-A']
+
+history = [('jenny', 'took FaceUpCard: D-Q'), ('Susan', 'took DrawCard: H-2'), 
+    ('jenny', 'took FaceUpCard: S-6'), ('Susan', 'took FaceUpCard: S-A')]
+
+

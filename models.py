@@ -54,6 +54,8 @@ class Game(ndb.Model):
     instructions = ndb.StringProperty()
     gameOver = ndb.BooleanProperty(required=True, default=False)
     winner = ndb.KeyProperty()
+    penaltyA = ndb.IntegerProperty()
+    penaltyB = ndb.IntegerProperty()
     history = ndb.PickleProperty(required=True)
 
     @classmethod
@@ -75,7 +77,12 @@ class Game(ndb.Model):
         game.userBHand = userBHand
         game.faceUpCard = faceUpCard
 
+        # set up history
+        textMove = 'starts!'
+
         game.history = []
+        game.history.append((userA.get().name, textMove))
+
         game.put()
         return game
 
@@ -137,6 +144,25 @@ class Game(ndb.Model):
         winner.get().addWin()
         loser.get().addLoss()
 
+    def gameRecordtoForm(self):
+        """
+        Returns a GameRecordForm representation of completed Game
+        Assistance with list[tuples]->str:
+        http://stackoverflow.com/questions/11696078/python-converting-a-list-of-tuples-to-a-list-of-strings
+        """
+        history = ['%s %s' % x for x in self.history]
+
+        form = GameForm(urlsafe_key=self.key.urlsafe(),
+                        userA=self.userA.get().name,
+                        userB=self.userB.get().name,
+                        gameOver=self.gameOver,
+                        history=history)
+        if self.winner:
+            form.winner = self.winner.get().name
+            form.penaltyA=self.penaltyA
+            form.penaltyB=self.penaltyB
+        return form
+
 
 class Score(ndb.Model):
     """Score object"""
@@ -195,6 +221,18 @@ class HandForm(messages.Message):
     hand = messages.StringField(3, required=True)
     faceUpCard = messages.StringField(4, required=True)
     instructions = messages.StringField(5, required=True)
+
+
+class GameRecordForm(messages.Message):
+    """GameRecordForm for completed game information"""
+    urlsafe_key = messages.StringField(1, required=True)
+    userA = messages.StringField(2, required=True)
+    userB = messages.StringField(3, required=True)
+    gameOver = messages.BooleanField(4, required=True)
+    winner = messages.StringField(5)
+    penaltyA = messages.IntegerField(6)
+    penaltyB = messages.IntegerField(7)
+    history = messages.StringField(8)
 
 
 class MoveForm(messages.Message):
