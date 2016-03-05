@@ -1,34 +1,35 @@
-#Full Stack Nanodegree Project 4 Refresh
+# Full Stack Nanodegree Project 4 - Straight Gin
+# Built by jennifer lyden on provided Tic-Tac-Toe template
+
 
 ## Set-Up Instructions:
-1.  Update the value of application in app.yaml to the app ID you have registered
- in the App Engine admin console and would like to use to host your instance of this sample.
-1.  Run the app with the devserver using dev_appserver.py DIR, and ensure it's
- running by visiting your local server's address (by default localhost:8080.)
-1.  (Optional) Generate your client library(ies) with the endpoints tool.
- Deploy your application.
+1. Update the value of application in app.yaml to the app ID you have registered in the App Engine admin console and would like to use to host your instance of this game.
+2. Run the app with the devserver using dev_appserver.py DIR, and ensure it's running by visiting your local server's address (by default localhost:8080.)
+3. Test API using localhost:8080/_ah/api/explorer 
  
- 
-##Game Description:
-Tic-Tac-Toe is a simple two player game. Game instructions are available
-[here](https://en.wikipedia.org/wiki/Tic-tac-toe).
 
-The board is represented as a 1-D list of squares with indexes as follows:
-[0, 1, 2
- 3, 4, 5
- 6, 7, 8]
- 
+##Game Description:
+Straight Gin is a variation of Gin Rummy. In the version implemented in this API, two players oppose each other in a single round. Each player is dealt 10 cards, and takes turns drawing new cards trying to shape his/her hand into acceptable runs and sets, holding all cards in their hands until the end. When all cards have been sorted into a run or set, a player can attempt to go "out." The first player to successfully go out wins. If a player attempts to go out, but the hand fails (not all cards belong to a run or set), the opponent automatically wins. If neither player can go "out" before the deck runs out of cards to draw, whoever has the lowest penalty (cards NOT sorted into runs or sets) in their hand wins.  Basic Gin Rummy instructions are available [here](https://en.wikipedia.org/wiki/Gin_rummy).
+
 
 ##Files Included:
  - api.py: Contains endpoints and game playing logic.
  - app.yaml: App configuration.
+ - constants.py: Constants required by game (FULL_DECK & LIBRARY).
  - cron.yaml: Cronjob configuration.
  - main.py: Handler for taskqueue handler.
  - models.py: Entity and message definitions including helper methods.
- - utils.py: Helper function for retrieving ndb.Models by urlsafe Key string.
-
+ - utils.py: Contains helper functions:
+    - get_by_urlsafe: retrieves ndb.Models using urlsafe key.
+    - dealHand: deals hands and draws single cards from deck.
+    - testHand: verifies if all cards in a hand belong to runs or sets, and returns penalty if unused cards remain
+    - cleanHand: used by testHand
+    - group_consecutives: used by testHand
+    - checkSets: used by testHand
+    
+--- NEED TO EDIT and ADD Endpoints
 ##Endpoints Included:
- - **create_user**
+ - **createUser**
     - Path: 'user'
     - Method: POST
     - Parameters: user_name
@@ -86,56 +87,7 @@ The board is represented as a 1-D list of squares with indexes as follows:
     - Description: Gets the average number of attempts remaining for all games
     from a previously cached memcache key.
 
-##Models Included:
- - **User**
-    - Stores unique user_name and (optional) email address.
-    - Also keeps track of wins and total_played.
-    
- - **Game**
-    - Stores unique game states. Associated with User models via KeyProperties
-    user_x and user_o.
-    
- - **Score**
-    - Records completed games. Associated with Users model via KeyProperty as
-    well.
-    
-##Forms Included:
- - **GameForm**
-    - Representation of a Game's state (urlsafe_key, board,
-    user_x, user_o, game_over, winner).
- - **NewGameForm**
-    - Used to create a new game (user_x, user_o)
- - **MakeMoveForm**
-    - Inbound make move form (user_name, move).
- - **ScoreForm**
-    - Representation of a completed game's Score (date, winner, loser).
- - **ScoreForms**
-    - Multiple ScoreForm container.
- - **UserForm**
-    - Representation of User. Includes winning percentage
- - **UserForms**
-    - Container for one or more UserForm.
- - **StringMessage**
-    - General purpose String container.
-    
-    
-##Design Decisions
-- I added a field to store the board in Game. I used PickleProperty because it allowed
-me to store a Python List in the datastore which seemed like the simplest way
-to record the state of the board.
-- I also added next_move, user_x, user_o, and winner (all KeyProperty) to the Game
-model to keep track of which User was either 'X' or 'O' and who's move it was.
-- I used a 'game_over' flag as well to mark completed games.
-- I modified the Score model to record which player won and lost each game.
-
-The 1-d list to represent the board was the simplest solution I could think of, 
-but it would make it very hard to scale the game to 4x4 or nxn versions of 
-tic-tac-toe because there's no way to automatically partition each row with a 
-1-d array. Also the winner checking logic is very hard-coded. 
-I don't feel great about the logic to track which player's turn it is, 
-but everything seems to work.
-
-##Additional endpoints
+    ##Additional endpoints
  - **get_user_games**
     - Path: 'user/games'
     - Method: GET
@@ -166,3 +118,44 @@ but everything seems to work.
     - Returns: StringMessage containing history
     - Description: Returns the move history of a game as a stringified list of 
     tuples in the form (square, symbol) eg: [(0, 'X'), (4, 'O')]
+--- NEED TO EDIT and ADD Endpoints
+
+
+##Models Included:
+ - **User**
+    - Stores unique user_name and (optional) email address.
+    - Also keeps track of wins and total_played.
+    - Possibly add average penalty?
+    
+ - **Game**
+    - Stores unique game states. Associated with User models via KeyProperties
+    userA and userB.
+    
+ - **Score**
+    - Records completed games. Associated with Users model via KeyProperty as
+    well.
+
+
+##Forms Included:
+ - **UserForm**
+    - Representation of User. Includes winning percentage
+ - **UserForms**
+    - Container for one or more UserForm.
+ - **NewGameForm**
+    - Used to create a new game (userA, userB)
+ - **GameForm**
+    - Representation of a Game's state (urlsafe_key, userA, userB, active - player whose turn it is, gameOver, winner).
+ - **GameForms**
+    - Container for one or more GameForm.
+ - **HandForm**
+    - Representation of active player's hand (urlsafe_key, active, hand - of active player, faceUpCard - available to draw, instructions) 
+ - **GameRecordForm**
+    - Representation of complete Game (urlsafe_key, userA, userB, gameOver, winner, penaltyA, penaltyB, history - record of game moves)
+ - **MakeMoveForm**
+    - Inbound make move form (user_name, move).
+ - **ScoreForm**
+    - Representation of a completed game's Score (date, winner, loser).
+ - **ScoreForms**
+    - Multiple ScoreForm container.
+ - **StringMessage**
+    - General purpose String container.

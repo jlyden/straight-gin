@@ -186,7 +186,6 @@ class UserForm(messages.Message):
     totalPlayed = messages.IntegerField(4, required=True)
     winPercentage = messages.FloatField(5, required=True)
 
-
 class UserForms(messages.Message):
     """Container for multiple User Forms"""
     items = messages.MessageField(UserForm, 1, repeated=True)
@@ -196,7 +195,6 @@ class NewGameForm(messages.Message):
     """Used to create a new game"""
     userA = messages.StringField(1, required=True)
     userB = messages.StringField(2, required=True)
-
 
 class GameForm(messages.Message):
     """GameForm for outbound game state information"""
@@ -208,11 +206,9 @@ class GameForm(messages.Message):
     gameOver = messages.BooleanField(6, required=True)
     winner = messages.StringField(7)
 
-
 class GameForms(messages.Message):
     """Container for multiple GameForm"""
     items = messages.MessageField(GameForm, 1, repeated=True)
-
 
 class HandForm(messages.Message):
     """HandForm for outbound game state information"""
@@ -221,7 +217,6 @@ class HandForm(messages.Message):
     hand = messages.StringField(3, required=True)
     faceUpCard = messages.StringField(4, required=True)
     instructions = messages.StringField(5, required=True)
-
 
 class GameRecordForm(messages.Message):
     """GameRecordForm for completed game information"""
@@ -246,7 +241,6 @@ class ScoreForm(messages.Message):
     date = messages.StringField(1, required=True)
     winner = messages.StringField(2, required=True)
     loser = messages.StringField(3, required=True)
-
 
 class ScoreForms(messages.Message):
     """Return multiple ScoreForms"""
