@@ -24,10 +24,11 @@ https://github.com/udacity/FSND-P4-Design-A-Game/blob/master/Project-Description
 
 --------------------------------------
 Test API after step 1.
-Works! - createUser, newGame, getGame, getHand, startMove, endMove
-game - ahRkZXZ-c3RyYWlnaHRnaW4tMTIzNHIRCxIER2FtZRiAgICAgMDvCgw
-jlyden1: C-3 C-4 D-10 D-J H-10 H-J S-3 S-4 S-6 S-7; FC-> D-6; M-> D-A 
-sew214:  H-9 C-9 C-J C-Q S-J S-Q D-7 D-A H-A S-A; FC->; M-> D-6 
+Works! - createUser, newGame, getGame, getHand, startMove, endMove, getScores, getUserScores
+
+*** Something's wrong with end game early (wrong loser assigned)
+
+
 
 
 

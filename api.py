@@ -184,7 +184,9 @@ class StraightGinAPI(remote.Service):
 
         # remove discard from hand and set as faceUpCard
         if not move[0] in hand:
-            raise endpoints.BadRequestException('That card isn\'t in your hand!')
+            raise endpoints.BadRequestException('That card isn\'t in your hand!',
+                    ' Enter your discard. If you are ready to go out, also type OUT.',
+                    ' Example: D-K OUT')
         else:
             hand.remove(move[0])
             if game.faceUpCard != []:
