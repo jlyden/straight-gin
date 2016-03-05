@@ -239,5 +239,19 @@ def test():
                 print 'Penalty: ', penalty
         counter += 1
 
-faceUpCard, deck = dealHand(1, FULL_DECK)
+jenny, deck = dealHand(10, FULL_DECK)
+faceUpCard, deck = dealHand(1, deck)
+print jenny
 print faceUpCard
+jenny += faceUpCard
+print jenny
+
+def endMove(move, hand):
+    move = move.split()
+    print move[0]
+    
+    if move[0] in hand:
+        hand.remove(move[0])
+    faceUpCard = ''.join(move[0])
+
+    return faceUpCard, hand

@@ -111,9 +111,9 @@ class StraightGinAPI(remote.Service):
         move = request.move.strip()
         textMove = ''
         if move == '1':
-            faceUpCard = game.faceUpCard.strip()
+            faceUpCard = game.faceUpCard
             hand += faceUpCard
-            game.faceUpCard = ''
+            game.faceUpCard = ['']
             textMove = 'FaceUpCard'
         elif move == '2':
             drawCard, deck = dealHand(1, game.deck)
@@ -185,8 +185,9 @@ class StraightGinAPI(remote.Service):
         # remove discard from hand and set as faceUpCard
         if move[0] in hand:
             hand.remove(move[0])
-        faceUpCard = move[0]
-        game.faceUpCard = faceUpCard
+        if game.faceUpCard != []:
+            game.faceUpCard = []
+        game.faceUpCard.append(''.join(move[0]))
         textMove = 'Discard: %s' % move[0]
 
         game.history.append((user.name, textMove))
