@@ -24,12 +24,11 @@ https://github.com/udacity/FSND-P4-Design-A-Game/blob/master/Project-Description
 
 --------------------------------------
 Test API after step 1.
-Works! - createUser, newGame, getGame, getHand, startMove, 
+Works! - createUser, newGame, getGame, getHand, startMove, endMove
 game - ahRkZXZ-c3RyYWlnaHRnaW4tMTIzNHIRCxIER2FtZRiAgICAgMDvCgw
-jlyden1: D-A C-3 C-Q D-10 D-J H-6 H-K S-3 S-4 S-6 S-7; FC-> H-10; M->
-sew214:  C-4 C-9 C-J D-6 D-7 H-10 H-5 H-A S-A S-J S-Q; FC-> H-K; D-> H-10
+jlyden1: C-3 C-4 D-10 D-J H-10 H-J S-3 S-4 S-6 S-7; FC-> D-6; M-> D-A 
+sew214:  H-9 C-9 C-J C-Q S-J S-Q D-7 D-A H-A S-A; FC->; M-> D-6 
 
-endMove error: discard w/extra spaces
 
 
 

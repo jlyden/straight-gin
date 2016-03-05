@@ -183,39 +183,41 @@ class StraightGinAPI(remote.Service):
         move = request.move.split()
 
         # remove discard from hand and set as faceUpCard
-        if move[0] in hand:
+        if not move[0] in hand:
+            raise endpoints.BadRequestException('That card isn\'t in your hand!')
+        else:
             hand.remove(move[0])
-        if game.faceUpCard != []:
-            game.faceUpCard = []
-        game.faceUpCard.append(''.join(move[0]))
-        textMove = 'Discard: %s' % move[0]
+            if game.faceUpCard != []:
+                game.faceUpCard = []
+            game.faceUpCard.append(''.join(move[0]))
+            textMove = 'Discard: %s' % move[0]
 
-        game.history.append((user.name, textMove))
+            game.history.append((user.name, textMove))
 
-        # reset flags
-        if game.active == game.userA:
-            game.active = game.userB
-        elif game.active == game.userB:
-            game.active = game.userA
-        game.midMove = False
+            # reset flags
+            if game.active == game.userA:
+                game.active = game.userB
+            elif game.active == game.userB:
+                game.active = game.userA
+            game.midMove = False
 
-        # if player is going out
-        if len(move) == 2:
-            if move[1] == 'OUT':
-                penalty = testHand(hand)
-                if penalty == 0:
-                    game.end_game(game.active)
-                    textMove = 'Won'
-                    game.history.append((game.active.get().name, textMove))
-                else:
-                    if game.active != game.userA:
-                        game.end_game(game.userA)
-                        textMove = 'Lost'
-                        game.history.append((game.userB.get().name, textMove))
+            # if player is going out
+            if len(move) == 2:
+                if move[1] == 'OUT':
+                    penalty = testHand(hand)
+                    if penalty == 0:
+                        game.endGame(game.active)
+                        textMove = 'Won'
+                        game.history.append((game.active.get().name, textMove))
                     else:
-                        game.end_game(game.userB)
-                        textMove = 'Lost'
-                        game.history.append((game.userA.get().name, textMove))
+                        if game.active != game.userA:
+                            game.endGame(game.userA)
+                            textMove = 'Lost'
+                            game.history.append((game.userB.get().name, textMove))
+                        else:
+                            game.endGame(game.userB)
+                            textMove = 'Lost'
+                            game.history.append((game.userA.get().name, textMove))
 
         game.put()
         return game.gameToForm()

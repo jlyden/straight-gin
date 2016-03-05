@@ -101,7 +101,9 @@ def cleanHand(hand):
 
     cleanHand = []
     for card in hand:
+        print card
         newCard = card.replace('-','')
+        print newCard
         # if face card, replace with numerical equivalent
         if ord(newCard[1]) in xrange(ord('A'), ord('Z')+1):
             newerCard = newCard[0]
@@ -109,6 +111,8 @@ def cleanHand(hand):
             cleanHand.append(newerCard)
         else:
             cleanHand.append(newCard)
+
+    print cleanHand
 
     # set up variables
     clubs = []
@@ -241,10 +245,10 @@ def test():
 
 jenny, deck = dealHand(10, FULL_DECK)
 faceUpCard, deck = dealHand(1, deck)
-print jenny
-print faceUpCard
+#print jenny
+#print faceUpCard
 jenny += faceUpCard
-print jenny
+#print jenny
 
 def endMove(move, hand):
     move = move.split()
@@ -255,3 +259,5 @@ def endMove(move, hand):
     faceUpCard = ''.join(move[0])
 
     return faceUpCard, hand
+
+susan = ['H-9', 'C-9', 'C-J', 'C-Q', 'S-J', 'S-Q', 'D-7', 'D-A', 'H-A', 'S-A']
