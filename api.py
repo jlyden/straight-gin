@@ -78,6 +78,27 @@ class StraightGinAPI(remote.Service):
 
 
     @endpoints.method(request_message=GET_GAME_REQUEST,
+                      response_message=StringMessage,
+                      path='game/{urlsafe_game_key}',
+                      name='cancelGame',
+                      http_method='DELETE')
+    def cancelGame(self, request):
+        """
+        Deletes in-progress game.
+        If the game is already completed, error thrown.
+        """
+        game = get_by_urlsafe(request.urlsafe_game_key, Game)
+        if not game:
+            raise endpoints.NotFoundException('Game not found!')
+        else:
+            if game.gameOver == True:
+                raise endpoints.BadRequestException('Game already over!')
+            else:
+                game.key.delete()
+        return StringMessage(message='Game deleted!')
+
+
+    @endpoints.method(request_message=GET_GAME_REQUEST,
                       response_message=HandForm,
                       path='game/{urlsafe_game_key}/hand',
                       name='getHand',
@@ -302,5 +323,18 @@ class StraightGinAPI(remote.Service):
         scores = Score.query(ndb.OR(Score.winner == user.key,
                                     Score.loser == user.key))
         return ScoreForms(items=[score.scoreToForm() for score in scores])
+
+
+    @endpoints.method(request_message=??????,
+                      response_message=UserForms,
+                      path='user/ranking',
+                      name='getUserRankings',
+                      http_method='GET')
+    def getUserRankings(self, request):
+        """Return UserForms, ranked by winning percentage"""
+        users = User.query().fetch()
+#       need to work on ordering ...
+#        users.order()
+        return UserForms(items=[user.userToForm() for user in users])
 
 api = endpoints.api_server([StraightGinAPI])

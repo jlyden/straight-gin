@@ -16,7 +16,7 @@ https://github.com/udacity/FSND-P4-Design-A-Game/blob/master/Project-Description
 4. Extend endpoints
    * getUserGames - NEED TO TEST
    * getGameHistory - NEED TO TEST
-   * cancel_game - only those in progress; delete or Boolean flag
+   * cancelGame - NEED TO TEST
    * get_high_scores([number_of_results]) - leaderboard
    * get_user_rankings - method for ranking & endpoint that returns player name & rank
 

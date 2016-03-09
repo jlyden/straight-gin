@@ -96,7 +96,7 @@ Straight Gin is a variation of Gin Rummy. In the version implemented in this API
     - Returns: GameForms with 1 or more GameForm inside.
     - Description: Returns the current state of all the User's active games.
     
- - **cancel_game**
+ - **cancelGame**
     - Path: 'game/{urlsafe_game_key}'
     - Method: DELETE
     - Parameters: urlsafe_game_key
@@ -104,7 +104,7 @@ Straight Gin is a variation of Gin Rummy. In the version implemented in this API
     - Description: Deletes the game. If the game is already completed an error
     will be thrown.
     
- - **get_user_rankings**
+ - **getUserRankings**
     - Path: 'user/ranking'
     - Method: GET
     - Parameters: None
