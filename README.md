@@ -4,12 +4,12 @@
 
 ## Set-Up Instructions:
 1. Update the value of application in app.yaml to the app ID you have registered in the App Engine admin console and would like to use to host your instance of this game.
-2. Run the app with the devserver using dev_appserver.py DIR, and ensure it's running by visiting your local server's address (by default localhost:8080.)
+2. Set up and run the app in Google App Engine Launcher.
 3. Test API using localhost:8080/_ah/api/explorer 
  
 
 ##Game Description:
-Straight Gin is a variation of Gin Rummy. In the version implemented in this API, two players oppose each other in a single round. Each player is dealt 10 cards, and takes turns drawing new cards trying to shape his/her hand into acceptable runs and sets, holding all cards in their hands until the end. When all cards have been sorted into a run or set, a player can attempt to go "out." The first player to successfully go out wins. If a player attempts to go out, but the hand fails (not all cards belong to a run or set), the opponent automatically wins. If neither player can go "out" before the deck runs out of cards to draw, whoever has the lowest penalty (cards NOT sorted into runs or sets) in their hand wins.  Basic Gin Rummy instructions are available [here](https://en.wikipedia.org/wiki/Gin_rummy).
+Straight Gin is a variation of Gin Rummy. In the version implemented in this API, two players oppose each other in a single round. Each player is dealt 10 cards, and takes turns drawing new cards trying to shape his/her hand into acceptable runs and sets, holding all cards in their hands until the end. When all 10 cards have been sorted into a run or set, a player can attempt to go "out." The first player to successfully go out wins. If a player attempts to go out, but the hand fails (not all cards belonging to a run or set), the opponent automatically wins. If neither player can go "out" before the deck runs out of cards to draw, whoever has the lowest penalty (cards NOT sorted into runs or sets) in their hand wins.  Basic Gin Rummy instructions are available [here](https://en.wikipedia.org/wiki/Gin_rummy).
 
 
 ##Files Included:
@@ -21,7 +21,7 @@ Straight Gin is a variation of Gin Rummy. In the version implemented in this API
  - models.py: Entity and message definitions including helper methods.
  - utils.py: Contains helper functions:
     - get_by_urlsafe: retrieves ndb.Models using urlsafe key.
-    - dealHand: deals hands and draws single cards from deck.
+    - dealHand: deals hands (as many cards as specified); also used to draw single card from deck during gameplay.
     - testHand: verifies if all cards in a hand belong to runs or sets, and returns penalty if unused cards remain
     - cleanHand: used by testHand
     - group_consecutives: used by testHand
@@ -32,66 +32,67 @@ Straight Gin is a variation of Gin Rummy. In the version implemented in this API
  - **createUser**
     - Path: 'user'
     - Method: POST
-    - Parameters: user_name
+    - Parameters: userName
     - Returns: Message confirming creation of the User.
-    - Description: Creates a new User. user_name provided must be unique. Will 
-    raise a ConflictException if a User with that user_name already exists.
+    - Description: Creates a new User. userName provided must be unique. Will 
+    raise a ConflictException if a User with that userName already exists.
     
- - **new_game**
+ - **newGame**
     - Path: 'game'
     - Method: POST
-    - Parameters: user_x, user_y
-    - Returns: GameForm with initial game state.
-    - Description: Creates a new Game. `user_x` and `user_o` are the names of the
-    'X' and 'O' player respectively
+    - Parameters: userA, userB
+    - Returns: GameForm with neutral game state (no user hand displayed)
+    - Description: Creates a new Game between `userA` and `userB`
      
- - **get_game**
+ - **getGame**
     - Path: 'game/{urlsafe_game_key}'
     - Method: GET
     - Parameters: urlsafe_game_key
-    - Returns: GameForm with current game state.
-    - Description: Returns the current state of a game.
+    - Returns: GameForm with current neutral game state (no user hand displayed)
+    - Description: Returns the current state of a game, including active player and faceUpCard, but not active player's hand (in case opponent is looking)
     
- - **make_move**
-    - Path: 'game/{urlsafe_game_key}'
+ - **getHand**
+    - Path: 'game/{urlsafe_game_key}/hand'
+    - Method: GET
+    - Parameters: urlsafe_game_key
+    - Returns: HandForm with active player's hand and game state information
+    - Description: Returns the active player's hand, plus current faceUpCard and instructions to startMove - player enters 1 to take faceUpCard or 2 to take hidden card from deck
+
+ - **startMove**
+    - Path: 'game/{urlsafe_game_key}/startMove'
     - Method: PUT
-    - Parameters: urlsafe_game_key, user_name, move
-    - Returns: GameForm with new game state.
-    - Description: Accepts a move and returns the updated state of the game.
-    A move is a number from 0 - 8 corresponding to one of the 9 possible
-    positions on the board.
-    If this causes a game to end, a corresponding Score entity will be created,
-    unless the game is tied - in which case the game will be deleted.
+    - Parameters: urlsafe_game_key, userName, move
+    - Returns: HandForm with new game state.
+    - Description: Accepts a move (1 or 2) and returns the updated state of the game as displayed on "HandForm", including updated instructions. Active player must now select/input card to discard from his/her hand, and add "OUT" if ready to go out.
     
- - **get_scores**
+ - **endMove**
+    - Path: 'game/{urlsafe_game_key}/endMove'
+    - Method: PUT
+    - Parameters: urlsafe_game_key, userName, move
+    - Returns: GameForm with new game state.
+    - Description: Accepts a move (discarded card and, optionally, "OUT") and returns the updated state of the game on "GameForm" - new active player and new faceUpCard (that discard).
+    
+ - **getScores**
     - Path: 'scores'
     - Method: GET
     - Parameters: None
     - Returns: ScoreForms.
     - Description: Returns all Scores in the database (unordered).
     
- - **get_user_scores**
-    - Path: 'scores/user/{user_name}'
+ - **getUserScores**
+    - Path: 'scores/user/{userName}'
     - Method: GET
-    - Parameters: user_name
+    - Parameters: userName
     - Returns: ScoreForms. 
     - Description: Returns all Scores recorded by the provided player (unordered).
     Will raise a NotFoundException if the User does not exist.
     
- - **get_active_game_count**
-    NOT IMPLEMENTED
-    - Path: 'games/active'
-    - Method: GET
-    - Parameters: None
-    - Returns: StringMessage
-    - Description: Gets the average number of attempts remaining for all games
-    from a previously cached memcache key.
 
-    ##Additional endpoints
- - **get_user_games**
+##Additional endpoints
+ - **getUserGames**
     - Path: 'user/games'
     - Method: GET
-    - Parameters: user_name
+    - Parameters: userName
     - Returns: GameForms with 1 or more GameForm inside.
     - Description: Returns the current state of all the User's active games.
     
@@ -111,29 +112,25 @@ Straight Gin is a variation of Gin Rummy. In the version implemented in this API
     - Description: Rank all players that have played at least one game by their
     winning percentage and return.
 
- - **get_game_history**
-    - Path: 'game/{urlsafe_game_key}'
+ - **getGameHistory**
+    - Path: 'game/{urlsafe_game_key}/history'
     - Method: GET
     - Parameters: urlsafe_game_key
-    - Returns: StringMessage containing history
-    - Description: Returns the move history of a game as a stringified list of 
-    tuples in the form (square, symbol) eg: [(0, 'X'), (4, 'O')]
---- NEED TO EDIT and ADD Endpoints
+    - Returns: GameHistoryForm presenting game history and other details.
+    - Description: Returns game history, a stringified list of tuples reporting whether player took faceUpCard or deck card, then what the player discarded), plus completed game details if game is over (winner plus relevent penalties).
 
 
 ##Models Included:
  - **User**
-    - Stores unique user_name and (optional) email address.
+    - Stores unique userName and (optional) email address.
     - Also keeps track of wins and total_played.
-    - Possibly add average penalty?
     
  - **Game**
     - Stores unique game states. Associated with User models via KeyProperties
     userA and userB.
     
  - **Score**
-    - Records completed games. Associated with Users model via KeyProperty as
-    well.
+    - Records completed games. Associated with Users model via KeyProperty.
 
 
 ##Forms Included:
@@ -149,10 +146,10 @@ Straight Gin is a variation of Gin Rummy. In the version implemented in this API
     - Container for one or more GameForm.
  - **HandForm**
     - Representation of active player's hand (urlsafe_key, active, hand - of active player, faceUpCard - available to draw, instructions) 
- - **GameRecordForm**
-    - Representation of complete Game (urlsafe_key, userA, userB, gameOver, winner, penaltyA, penaltyB, history - record of game moves)
+ - **GameHistoryForm**
+    - Representation of Game with history, and if completed, winner and penalties (urlsafe_key, userA, userB, gameOver, winner, penaltyA, penaltyB, history - record of game moves)
  - **MakeMoveForm**
-    - Inbound make move form (user_name, move).
+    - Inbound make move form (userName, move).
  - **ScoreForm**
     - Representation of a completed game's Score (date, winner, loser).
  - **ScoreForms**

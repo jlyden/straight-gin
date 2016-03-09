@@ -144,15 +144,15 @@ class Game(ndb.Model):
         winner.get().addWin()
         loser.get().addLoss()
 
-    def gameRecordtoForm(self):
+    def gameHistorytoForm(self):
         """
-        Returns a GameRecordForm representation of completed Game
+        Returns a GameHistoryForm representation of completed Game
         Assistance with list[tuples]->str:
         http://stackoverflow.com/questions/11696078/python-converting-a-list-of-tuples-to-a-list-of-strings
         """
         history = ['%s %s' % x for x in self.history]
 
-        form = GameForm(urlsafe_key=self.key.urlsafe(),
+        form = GameHistoryForm(urlsafe_key=self.key.urlsafe(),
                         userA=self.userA.get().name,
                         userB=self.userB.get().name,
                         gameOver=self.gameOver,
@@ -218,7 +218,7 @@ class HandForm(messages.Message):
     faceUpCard = messages.StringField(4, required=True)
     instructions = messages.StringField(5, required=True)
 
-class GameRecordForm(messages.Message):
+class GameHistoryForm(messages.Message):
     """GameRecordForm for completed game information"""
     urlsafe_key = messages.StringField(1, required=True)
     userA = messages.StringField(2, required=True)

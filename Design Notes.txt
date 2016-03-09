@@ -14,11 +14,11 @@ https://github.com/udacity/FSND-P4-Design-A-Game/blob/master/Project-Description
    Trade-offs/struggles when implementing game logic? [Design.txt]
 
 4. Extend endpoints
-   * get_user_games [probably games s/b descendents of user]
+   * getUserGames - NEED TO TEST
+   * getGameHistory - NEED TO TEST
    * cancel_game - only those in progress; delete or Boolean flag
    * get_high_scores([number_of_results]) - leaderboard
    * get_user_rankings - method for ranking & endpoint that returns player name & rank
-   * get_game_history - record of moves (w/results) in particular game
 
 5. Improve notifications
 
@@ -27,7 +27,7 @@ Test API after step 1.
 Works! - createUser, newGame, getGame, getHand, startMove, endMove, getScores, getUserScores
 
 *** Something's wrong with end game early (wrong loser assigned)
-
+*** perhaps combine gameRecordForm and Score object?
 
 
 
