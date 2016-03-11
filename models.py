@@ -78,7 +78,7 @@ class Game(ndb.Model):
         game.faceUpCard = faceUpCard
 
         # set up history
-        textMove = 'starts!'
+        textMove = 'starts'
 
         game.history = []
         game.history.append((userA.get().name, textMove))
@@ -96,6 +96,7 @@ class Game(ndb.Model):
                         userB=self.userB.get().name,
                         active=self.active.get().name,
                         faceUpCard=stringCard,
+                        midMove=self.midMove,
                         gameOver=self.gameOver)
         if self.winner:
             form.winner = self.winner.get().name
@@ -103,32 +104,37 @@ class Game(ndb.Model):
 
     def handToForm(self):
         """Returns a HandForm representation active user's hand"""
-        # retrieve correct hand
-        user = self.active
-        if user == self.userA:
-            hand = self.userAHand
+        # If game is over, return history instead
+        if self.gameOver:
+            return self.gameHistorytoForm()
         else:
-            hand = self.userBHand
+            # retrieve correct hand
+            user = self.active
+            if user == self.userA:
+                hand = self.userAHand
+            else:
+                hand = self.userBHand
 
-        # sort hand and convert to string
-        sortHand = sorted(hand)
-        stringHand = ' '.join(str(card) for card in sortHand)
+            # sort hand and convert to string
+            sortHand = sorted(hand)
+            stringHand = ' '.join(str(card) for card in sortHand)
 
-        # convert faceUpCard to string
-        stringCard = ' '.join(self.faceUpCard)
+            # convert faceUpCard to string
+            stringCard = ' '.join(self.faceUpCard)
 
-        # return proper instructions
-        if self.midMove:
-            instructions = 'Enter your discard. If you are ready to go out, also type OUT. Example: D-K OUT'
-        else:
-            instructions = 'Enter 1 to take face up card or 2 to draw from pile.'
+            # return proper instructions
+            if self.midMove:
+                instructions = 'Enter your discard. If you are ready to go out, also type OUT. Example: D-K OUT'
+            else:
+                instructions = 'Enter 1 to take face up card or 2 to draw from pile.'
 
-        form = HandForm(urlsafe_key=self.key.urlsafe(),
-                        active=self.active.get().name,
-                        hand=stringHand,
-                        faceUpCard=stringCard,
-                        instructions=instructions)
-        return form
+            form = HandForm(urlsafe_key=self.key.urlsafe(),
+                            midMove=self.midMove,
+                            active=self.active.get().name,
+                            hand=stringHand,
+                            faceUpCard=stringCard,
+                            instructions=instructions)
+            return form
 
     def endGame(self, winner):
         """Ends the game"""
@@ -147,10 +153,11 @@ class Game(ndb.Model):
     def gameHistorytoForm(self):
         """
         Returns a GameHistoryForm representation of completed Game
-        Assistance with list[tuples]->str:
+        Assistance with list[tuples]->list[str]:
         http://stackoverflow.com/questions/11696078/python-converting-a-list-of-tuples-to-a-list-of-strings
         """
-        history = ['%s %s' % x for x in self.history]
+        historyList = ['%s %s' % x for x in self.history]
+        history = '; '.join(str(move) for move in historyList)
 
         form = GameHistoryForm(urlsafe_key=self.key.urlsafe(),
                         userA=self.userA.get().name,
@@ -203,8 +210,9 @@ class GameForm(messages.Message):
     userB = messages.StringField(3, required=True)
     active = messages.StringField(4, required=True)
     faceUpCard = messages.StringField(5, required=True)
-    gameOver = messages.BooleanField(6, required=True)
-    winner = messages.StringField(7)
+    midMove = messages.BooleanField(6, required=True)
+    gameOver = messages.BooleanField(7, required=True)
+    winner = messages.StringField(8)
 
 class GameForms(messages.Message):
     """Container for multiple GameForm"""
@@ -213,10 +221,11 @@ class GameForms(messages.Message):
 class HandForm(messages.Message):
     """HandForm for outbound game state information"""
     urlsafe_key = messages.StringField(1, required=True)
-    active = messages.StringField(2, required=True)
-    hand = messages.StringField(3, required=True)
-    faceUpCard = messages.StringField(4, required=True)
-    instructions = messages.StringField(5, required=True)
+    midMove = messages.BooleanField(2, required=True)
+    active = messages.StringField(3, required=True)
+    hand = messages.StringField(4, required=True)
+    faceUpCard = messages.StringField(5, required=True)
+    instructions = messages.StringField(6, required=True)
 
 class GameHistoryForm(messages.Message):
     """GameRecordForm for completed game information"""

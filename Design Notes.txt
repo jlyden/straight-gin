@@ -1,3 +1,21 @@
+ahRkZXZ-c3RyYWlnaHRnaW4tMTIzNHIRCxIER2FtZRiAgICAgMDvCAw
+
+fc = S-Q
+j: C-5 C-7 C-8 C-K C-Q D-6 D-8 H-6 H-7 S-4
+
+s: C-4 D-4 H-4; C-3 C-9 C-J D-5 H-9 S-2 S-6 S-J
+
+
+
+
+
+
+
+** still wrong winner
+
+ahRkZXZ-c3RyYWlnaHRnaW4tMTIzNHIRCxIER2FtZRiAgICAgMCvCQw
+
+
 https://github.com/udacity/FSND-P4-Design-A-Game/blob/master/Project-Description.md
 
 1. Modify existing Guess-A-Number game to other game
@@ -17,7 +35,6 @@ https://github.com/udacity/FSND-P4-Design-A-Game/blob/master/Project-Description
    * getUserGames - NEED TO TEST
    * getGameHistory - NEED TO TEST
    * cancelGame - NEED TO TEST
-   * get_high_scores([number_of_results]) - leaderboard
    * get_user_rankings - method for ranking & endpoint that returns player name & rank
 
 5. Improve notifications
@@ -27,12 +44,6 @@ Test API after step 1.
 Works! - createUser, newGame, getGame, getHand, startMove, endMove, getScores, getUserScores
 
 *** Something's wrong with end game early (wrong loser assigned)
-*** perhaps combine gameRecordForm and Score object?
-
-
-
-
-
 
 ----------------------------------------
 DONE Rule modifications:

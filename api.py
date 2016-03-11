@@ -124,6 +124,8 @@ class StraightGinAPI(remote.Service):
             raise endpoints.NotFoundException('Game not found')
         if game.gameOver:
             raise endpoints.NotFoundException('Game already over')
+        if game.midMove:
+            raise endpoints.BadRequestException('Game is mid-Move. \"getHand\", select a discard, then \"endMove\"')
 
         user = User.query(User.name == request.userName).get()
         if user.key != game.active:
@@ -141,14 +143,14 @@ class StraightGinAPI(remote.Service):
         if move == '1':
             faceUpCard = game.faceUpCard
             hand += faceUpCard
-            textMove = 'took FaceUpCard ' + str(game.faceUpCard)
+            textMove = 'took FaceUpCard ' + ''.join(game.faceUpCard)
             game.faceUpCard = ['']
         elif move == '2':
             drawCard, deck = dealHand(1, game.deck)
-            # if there are still cards left in deck
+            # if there are still cards left in deck, play continues
             if drawCard != None:
                 hand += drawCard
-                textMove = 'took DrawCard ' + str(drawCard)
+                textMove = 'took DrawCard ' + ''.join(drawCard)
                 game.deck = deck
             # but if out of cards, game automatically ends
             else:
@@ -200,6 +202,8 @@ class StraightGinAPI(remote.Service):
             raise endpoints.NotFoundException('Game not found')
         if game.gameOver:
             raise endpoints.NotFoundException('Game already over')
+        if not game.midMove:
+            raise endpoints.BadRequestException('You must \"startMove\" before you end it! Try \"getHand\" to see active player\'s hand and instructions for input.')
 
         user = User.query(User.name == request.userName).get()
         if user.key != game.active:
@@ -227,13 +231,6 @@ class StraightGinAPI(remote.Service):
             textMove = 'discards %s' % move[0]
 
             game.history.append((user.name, textMove))
-
-            # reset flags
-            if game.active == game.userA:
-                game.active = game.userB
-            elif game.active == game.userB:
-                game.active = game.userA
-            game.midMove = False
 
             # if player is going out
             if len(move) == 2:
@@ -266,6 +263,13 @@ class StraightGinAPI(remote.Service):
                             game.penaltyB = testHand(game.userBHand)
                             game.history.append((game.userA.get().name, textMove))
 
+            # reset flags
+            if game.active == game.userA:
+                game.active = game.userB
+            elif game.active == game.userB:
+                game.active = game.userA
+            game.midMove = False
+
         game.put()
         return game.gameToForm()
 
@@ -295,7 +299,7 @@ class StraightGinAPI(remote.Service):
         """Return the history and other details of a game"""
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
         if game:
-            return game.gameRecordtoForm()
+            return game.gameHistorytoForm()
         else:
             raise endpoints.NotFoundException('Game not found!')
 
