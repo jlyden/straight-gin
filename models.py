@@ -175,10 +175,11 @@ class Game(ndb.Model):
                     self.win_game(self.player_two)
                 else:
                     self.win_game(self.player_one)
+        self.mid_move = False
         self.put()
 
     def win_game(self, winner):
-        """Ends the game"""
+        """Sets game winner"""
         self.winner = winner
         self.game_over = True
         self.put()
