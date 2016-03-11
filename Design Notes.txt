@@ -1,5 +1,7 @@
-ahRkZXZ-c3RyYWlnaHRnaW4tMTIzNHIRCxIER2FtZRiAgICAgMDfCAw
+ahRkZXZ-c3RyYWlnaHRnaW4tMTIzNHIRCxIER2FtZRiAgICAgODXCQw
 
+j: C-6 D-4 D-5 D-6 H-4 H-8 D-8
+s: C-2 C-J H-2 H-7 S-7 H-J H-Q
 
 https://github.com/udacity/FSND-P4-Design-A-Game/blob/master/Project-Description.md
 

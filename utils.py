@@ -1,11 +1,10 @@
-# utility functions for StraightGinAPI
+# utility functions for Straight_Gin_API
 
-#import logging ?
-import random
 import constants
+import endpoints
+import random
 from itertools import groupby
 from google.appengine.ext import ndb
-import endpoints
 
 def get_by_urlsafe(urlsafe, model):
     """Returns an ndb.Model entity that the urlsafe key points to. Checks
@@ -38,9 +37,9 @@ def get_by_urlsafe(urlsafe, model):
     return entity
 
 
-def dealHand(deal, deck):
+def deal_hand(deal, deck):
     """
-    Return list of strings of quantity "deal" and remaining strings in "deck"
+    Return list of strings of quantity "deal" and list of remaining strings in "deck"
 
     deal: positive integer
     deck: list of strings
@@ -56,13 +55,13 @@ def dealHand(deal, deck):
         return None, [0]
 
 
-def testHand(hand):
+def test_hand(hand):
     """
-    Calculate deadwood penalty of StraightGin hand
+    Calculate deadwood penalty of Straight_Gin hand
 
     hand: list of strings
 
-    Returns integer penalty of unplayable ("deadwood") cards in hand
+    Return integer penalty of unplayable ("deadwood") cards in hand
 
     Resources consulted:
     http://stackoverflow.com/questions/7352684/how-to-find-the-groups-of-consecutive-elements-from-an-array-in-numpy
@@ -71,10 +70,10 @@ def testHand(hand):
     http://stackoverflow.com/questions/7025581/how-can-i-group-equivalent-items-together-in-a-python-list
     """
 
-    suits = cleanHand(hand)
+    suits = clean_hand(hand)
 
     # set up variables
-    longRuns = []
+    long_runs = []
     leftovers = []
 
     # look for runs within each suit
@@ -87,9 +86,9 @@ def testHand(hand):
             for group in groups:
                 # if group is run of at least 3 different numbers
                 if len(group) > 2 and group[0] != group[-1]:
-                    # store longRuns to help with sets later
+                    # store long_runs to help with sets later
                     if len(group) > 3:
-                        longRuns.append(group)
+                        long_runs.append(group)
                     # remove cards used in run from suit
                     suit[:] = [item for i,item in enumerate(suit) if item not in group]
 
@@ -102,58 +101,61 @@ def testHand(hand):
             leftovers += suit
 
     # look for sets in leftovers
-
     # check leftovers for sets of duplicates
-    # (twice in case of buried last-cards)
-    leftovers, longRuns = checkSets(leftovers, longRuns)
-    leftovers, longRuns = checkSets(leftovers, longRuns)
+    leftovers, long_runs = check_sets(leftovers, long_runs)
+    # (twice in case of buried last cards)
+    leftovers, long_runs = check_sets(leftovers, long_runs)
 
     # calculate penalty (face card pts != 10)
     penalty = sum(leftovers)
     return penalty
 
 
-def cleanHand(hand):
+def clean_hand(hand):
     """
     Remove '-' & face-card letters from human-readable card representations
     Split hand by suit & strip suit-letters
 
     hand: list of strings
 
-    Returns list of lists, where each inner list includes cards of same suit
+    Return list of lists, where each inner list includes cards of same suit
     """
-
-    cleanHand = []
+    clean_hand = []
     for card in hand:
-        newCard = card.replace('-','')
-        # if face card, replace with numerical equivalent
-        if ord(newCard[1]) in xrange(ord('A'), ord('Z')+1):
-            newerCard = newCard[0]
-            newerCard = newerCard + constants.LIBRARY[newCard[1]]
-            cleanHand.append(newerCard)
+        # remove - from card representation
+        strip_card = card.replace('-','')
+        # if face card, replace with numerical equivalent (i.e. J = Jack = 11)
+        if ord(strip_card[1]) in xrange(ord('A'), ord('Z')+1):
+            # Keep letter for suit
+            number_card = strip_card[0]
+            # But change letter for face card (i.e. J for Jack) to number
+            number_card = number_card + constants.LIBRARY[strip_card[1]]
+            clean_hand.append(number_card)
+        # Just add non-face cards without transformation
         else:
-            cleanHand.append(newCard)
+            clean_hand.append(strip_card)
 
     # set up variables
     clubs = []
-    spades = []
-    hearts = []
     diamonds = []
-    suits = [clubs, spades, hearts, diamonds]
+    hearts = []
+    spades = []
+    suits = [clubs, diamonds, hearts, spades]
 
-    for card in cleanHand:
+    for card in clean_hand:
         if card[0] == 'C':
-            newcard = int(card[1:])
-            clubs.append(newcard)
-        elif card[0] == 'S':
-            newcard = int(card[1:])
-            spades.append(newcard)
-        elif card[0] == 'H':
-            newcard = int(card[1:])
-            hearts.append(newcard)
+            # add to club set, but strip letter from card representation
+            just_number = int(card[1:])
+            clubs.append(just_number)
         elif card[0] == 'D':
-            newcard = int(card[1:])
-            diamonds.append(newcard)
+            just_number = int(card[1:])
+            diamonds.append(just_number)
+        elif card[0] == 'H':
+            just_number = int(card[1:])
+            hearts.append(just_number)
+        elif card[0] == 'S':
+            just_number = int(card[1:])
+            spades.append(just_number)
 
     return suits
 
@@ -178,42 +180,42 @@ def group_consecutives(vals, step=1):
     return result
 
 
-def checkSets(leftovers, longRuns):
+def check_sets(leftovers, long_runs):
     """
     Sort & group leftovers by number
     Remove sets of 3 or 4 cards of same value from leftovers
-    Look in longRuns (where run > 3) for completion cards for 1 or 2 card sets
+    Look in long_runs (where run > 3) for completion cards for 1 or 2 card sets
 
-    Return transformed leftovers & longRuns
+    Return transformed leftovers & long_runs
     """
     # group leftovers by number
     leftovers.sort()
     sets = [list(g) for k,g in groupby(leftovers)]
     for set in sets:
 
-        # if set of 3 or 4, remove cards from leftovers
+        # if set of 3 or 4, just remove cards from leftovers
         if len(set) == 3 or len(set) == 4:
             leftovers[:] = [item for i,item in enumerate(leftovers) if item not in set]
 
-        # if set of 2 or 1, look for help in longRuns
+        # if set of 2 or 1, look for help in long_runs
         elif len(set) == 2 or len(set) == 1:
-            for run in longRuns:
-                # if number in set is first or last item in longRun
+            for run in long_runs:
+                # if number in set is first or last value in a long_run,
                 # we can finish the set with that card!
                 # 1) remove set cards from leftovers
-                # 2) remove run from longRun
-                # 3) if run > 4 (long enough to remove one card and still be a longRun),
-                #    put newrun (without the set card) back in longRun
+                # 2) remove run from long_run
+                # 3) if run > 4 (long enough to remove one card and still BE a long_run),
+                #    put new_run (without the used set card) back in long_run
                 if set[0] == run[0]:
                     leftovers[:] = [item for i,item in enumerate(leftovers) if item not in set]
-                    longRuns.remove(run)
+                    long_runs.remove(run)
                     if len(run) > 4:
-                        newrun = run[1:]
-                        longRuns.append(newrun)
+                        new_run = run[1:]
+                        long_runs.append(new_run)
                 elif set[0] == run[-1]:
                     leftovers[:] = [item for i,item in enumerate(leftovers) if item not in set]
-                    longRuns.remove(run)
+                    long_runs.remove(run)
                     if len(run) > 4:
-                        newrun = run[:-1]
-                        longRuns.append(newrun)
-    return leftovers, longRuns
+                        new_run = run[:-1]
+                        long_runs.append(new_run)
+    return leftovers, long_runs

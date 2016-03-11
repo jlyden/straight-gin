@@ -1,8 +1,8 @@
-# models for StraightGinAPI
+# models for Straight_Gin_API
 # AFTER TESTING, CHANGE HAND_SIZE
 
 import constants
-from utils import dealHand
+from utils import deal_hand, test_hand
 from datetime import date
 from protorpc import messages
 from google.appengine.ext import ndb
@@ -14,161 +14,203 @@ class User(ndb.Model):
     name = ndb.StringProperty(required=True)
     email = ndb.StringProperty(required=True)
     wins = ndb.IntegerProperty(default=0)
-    totalPlayed = ndb.IntegerProperty(default=0)
+    games = ndb.IntegerProperty(default=0)
+    total_penalty = ndb.IntegerProperty(default=0)
 
     @property
-    def winPercentage(self):
-        if self.totalPlayed > 0:
-            return float(self.wins)/float(self.totalPlayed)
+    def win_rate(self):
+        if self.games > 0:
+            return float(self.wins)/float(self.games)
         else:
             return 0.0
 
-    def userToForm(self):
+    @property
+    def avg_penalty(self):
+        if self.games > 0:
+            return float(self.total_penalty)/float(self.games)
+        else:
+            return 0.0
+
+    def user_to_form(self):
         return UserForm(name=self.name,
                         email=self.email,
                         wins=self.wins,
-                        totalPlayed=self.totalPlayed,
-                        winPercentage=self.winPercentage)
+                        games=self.games,
+                        win_rate=self.win_rate,
+                        avg_penalty=self.avg_penalty)
 
-    def addWin(self):
+    def add_win(self):
         """Add a win"""
         self.wins += 1
-        self.totalPlayed += 1
+        self.games += 1
         self.put()
 
-    def addLoss(self):
+    def add_loss(self):
         """Add a loss"""
-        self.totalPlayed += 1
+        self.games += 1
+        self.put()
+
+    def add_penalty(self,penalty):
+        """Add to total_penalty"""
+        self.total_penalty += penalty
         self.put()
 
 
 class Game(ndb.Model):
     """Game object"""
     deck = ndb.PickleProperty(required=True)
-    userA = ndb.KeyProperty(required=True, kind='User')
-    userB = ndb.KeyProperty(required=True, kind='User')
-    userAHand = ndb.PickleProperty(required=True)
-    userBHand = ndb.PickleProperty(required=True)
-    active = ndb.KeyProperty(required=True) # The User whose turn it is
-    faceUpCard = ndb.PickleProperty(required=True) # Draw card showing
-    midMove = ndb.BooleanProperty(required=True, default=False)
+    player_one = ndb.KeyProperty(required=True, kind='User')
+    player_two = ndb.KeyProperty(required=True, kind='User')
+    hand_one = ndb.PickleProperty(required=True)
+    hand_two = ndb.PickleProperty(required=True)
+    active = ndb.KeyProperty(required=True)       # User whose turn it is
+    draw_card = ndb.PickleProperty(required=True) # Visible draw card
+    mid_move = ndb.BooleanProperty(required=True, default=False)
     instructions = ndb.StringProperty()
-    gameOver = ndb.BooleanProperty(required=True, default=False)
+    game_over = ndb.BooleanProperty(required=True, default=False)
     winner = ndb.KeyProperty()
-    penaltyA = ndb.IntegerProperty()
-    penaltyB = ndb.IntegerProperty()
+    penalty_one = ndb.IntegerProperty()
+    penalty_two = ndb.IntegerProperty()
     history = ndb.PickleProperty(required=True)
 
     @classmethod
-    def newGame(cls, userA, userB):
+    def new_game(cls, player_one, player_two):
         """Creates and returns a new game"""
-        game = Game(userA=userA,
-                    userB=userB,
-                    active=userA)
+        game = Game(player_one=player_one,
+                    player_two=player_two,
+                    active=player_one)
 
-        # Prepare deck, hands, faceUpCard
+        # Prepare deck, hands, draw_card
+        # Note that deck is transformed with each card dealt
         deck = constants.FULL_DECK
-        userAHand, deck = dealHand(constants.HAND_SIZE, deck)
-        userBHand, deck = dealHand(constants.HAND_SIZE, deck)
-        faceUpCard, deck = dealHand(1, deck)
-
-        # Set Game card values
-        game.deck = deck
-        game.userAHand = userAHand
-        game.userBHand = userBHand
-        game.faceUpCard = faceUpCard
+        game.hand_one, deck = deal_hand(constants.HAND_SIZE, deck)
+        game.hand_two, deck = deal_hand(constants.HAND_SIZE, deck)
+        game.draw_card, game.deck = deal_hand(1, deck)
 
         # set up history
-        textMove = 'starts'
-
+        text_move = 'goes first'
         game.history = []
-        game.history.append((userA.get().name, textMove))
+        game.history.append((player_one.get().name, text_move))
 
         game.put()
         return game
 
-    def gameToForm(self):
+    def game_to_form(self):
         """Returns a GameForm representation of the Game"""
-        # convert faceUpCard to string
-        stringCard = ' '.join(self.faceUpCard)
+        # convert draw_card to string
+        string_card = ' '.join(self.draw_card)
 
         form = GameForm(urlsafe_key=self.key.urlsafe(),
-                        userA=self.userA.get().name,
-                        userB=self.userB.get().name,
+                        player_one=self.player_one.get().name,
+                        player_two=self.player_two.get().name,
                         active=self.active.get().name,
-                        faceUpCard=stringCard,
-                        midMove=self.midMove,
-                        gameOver=self.gameOver)
+                        draw_card=string_card,
+                        mid_move=self.mid_move,
+                        game_over=self.game_over)
         if self.winner:
             form.winner = self.winner.get().name
         return form
 
-    def handToForm(self):
-        """Returns a HandForm representation active user's hand"""
+    def hand_to_form(self):
+        """Returns a HandForm representation active player's hand"""
         # If game is over, return history instead
-        if self.gameOver:
-            return self.gameHistorytoForm()
+        if self.game_over:
+            return self.history_to_form()
         else:
             # retrieve correct hand
-            user = self.active
-            if user == self.userA:
-                hand = self.userAHand
+            if self.active == self.player_one:
+                hand = self.hand_one
             else:
-                hand = self.userBHand
+                hand = self.hand_two
 
-            # sort hand and convert to string
-            sortHand = sorted(hand)
-            stringHand = ' '.join(str(card) for card in sortHand)
-
-            # convert faceUpCard to string
-            stringCard = ' '.join(self.faceUpCard)
+            # convert sorted hand & draw_card to strings
+            sorted_hand = sorted(hand)
+            string_hand = ' '.join(str(card) for card in sorted_hand)
+            string_card = ' '.join(self.draw_card)
 
             # return proper instructions
-            if self.midMove:
+            if self.mid_move:
                 instructions = 'Enter your discard. If you are ready to go out, also type OUT. Example: D-K OUT'
             else:
-                instructions = 'Enter 1 to take face up card or 2 to draw from pile.'
+                instructions = 'Enter 1 to take visible card or 2 to draw from pile.'
 
             form = HandForm(urlsafe_key=self.key.urlsafe(),
-                            midMove=self.midMove,
+                            mid_move=self.mid_move,
                             active=self.active.get().name,
-                            hand=stringHand,
-                            faceUpCard=stringCard,
+                            hand=string_hand,
+                            draw_card=string_card,
                             instructions=instructions)
             return form
 
-    def endGame(self, winner):
+    def end_game(self, chosen=False):
+        """
+        chosen: boolean representing if active player has chosen to go "OUT"
+        """
+        # check both players' hands and record penalties
+        self.penalty_one = test_hand(self.hand_one)
+        self.player_one.get().add_penalty(self.penalty_one)
+        self.penalty_two = test_hand(self.hand_two)
+        self.player_two.get().add_penalty(self.penalty_two)
+
+        # if game ended because no more cards to draw
+        if not chosen:
+            if self.penalty_one < self.penalty_two:
+                self.win_game(self.player_one)
+            elif self.penalty_two < self.penalty_one:
+                self.win_game(self.player_two)
+            # tie goes to active player
+            else:
+                self.win_game(self.active)
+
+        # if game ended because active player signaled "OUT"
+        # active player needs penalty of 0 to win
+        else:
+            if self.active == self.player_one:
+                if self.penalty_one == 0:
+                    self.win_game(self.player_one)
+                else:
+                    self.win_game(self.player_two)
+            else:
+                if self.penalty_two == 0:
+                    self.win_game(self.player_two)
+                else:
+                    self.win_game(self.player_one)
+        self.put()
+
+    def win_game(self, winner):
         """Ends the game"""
         self.winner = winner
-        self.gameOver = True
+        self.game_over = True
         self.put()
-        loser = self.userB if winner == self.userA else self.userA
+
+        loser = self.player_two if winner == self.player_one else self.player_one
         # Add the game to the score 'board'
         score = Score(date=date.today(), winner=winner, loser=loser)
         score.put()
 
         # Update the user models
-        winner.get().addWin()
-        loser.get().addLoss()
+        winner.get().add_win()
+        loser.get().add_loss()
 
-    def gameHistorytoForm(self):
+
+    def history_to_form(self):
         """
-        Returns a GameHistoryForm representation of completed Game
+        Returns GameHistoryForm representation of completed Game
         Assistance with list[tuples]->list[str]:
         http://stackoverflow.com/questions/11696078/python-converting-a-list-of-tuples-to-a-list-of-strings
         """
-        historyList = ['%s %s' % x for x in self.history]
-        history = '; '.join(str(move) for move in historyList)
+        history_list = ['%s %s' % x for x in self.history]
+        history = '; '.join(str(move) for move in history_list)
 
         form = GameHistoryForm(urlsafe_key=self.key.urlsafe(),
-                        userA=self.userA.get().name,
-                        userB=self.userB.get().name,
-                        gameOver=self.gameOver,
-                        history=history)
+                                player_one=self.player_one.get().name,
+                                player_two=self.player_two.get().name,
+                                game_over=self.game_over,
+                                history=history)
         if self.winner:
             form.winner = self.winner.get().name
-            form.penaltyA=self.penaltyA
-            form.penaltyB=self.penaltyB
+            form.penalty_one=self.penalty_one
+            form.penalty_two=self.penalty_two
         return form
 
 
@@ -178,7 +220,7 @@ class Score(ndb.Model):
     winner = ndb.KeyProperty(required=True)
     loser = ndb.KeyProperty(required=True)
 
-    def scoreToForm(self):
+    def score_to_form(self):
         return ScoreForm(date=str(self.date),
                          winner=self.winner.get().name,
                          loser=self.loser.get().name)
@@ -190,9 +232,10 @@ class UserForm(messages.Message):
     """User Form"""
     name = messages.StringField(1, required=True)
     email = messages.StringField(2)
-    wins = messages.IntegerField(3, required=True)
-    totalPlayed = messages.IntegerField(4, required=True)
-    winPercentage = messages.FloatField(5, required=True)
+    wins = messages.IntegerField(3)
+    games = messages.IntegerField(4, required=True)
+    win_rate = messages.FloatField(5)
+    avg_penalty = messages.FloatField(6)
 
 class UserForms(messages.Message):
     """Container for multiple User Forms"""
@@ -201,18 +244,18 @@ class UserForms(messages.Message):
 
 class NewGameForm(messages.Message):
     """Used to create a new game"""
-    userA = messages.StringField(1, required=True)
-    userB = messages.StringField(2, required=True)
+    player_one = messages.StringField(1, required=True)
+    player_two = messages.StringField(2, required=True)
 
 class GameForm(messages.Message):
     """GameForm for outbound game state information"""
     urlsafe_key = messages.StringField(1, required=True)
-    userA = messages.StringField(2, required=True)
-    userB = messages.StringField(3, required=True)
+    player_one = messages.StringField(2, required=True)
+    player_two = messages.StringField(3, required=True)
     active = messages.StringField(4, required=True)
-    faceUpCard = messages.StringField(5, required=True)
-    midMove = messages.BooleanField(6, required=True)
-    gameOver = messages.BooleanField(7, required=True)
+    draw_card = messages.StringField(5, required=True)
+    mid_move = messages.BooleanField(6, required=True)
+    game_over = messages.BooleanField(7, required=True)
     winner = messages.StringField(8)
 
 class GameForms(messages.Message):
@@ -222,27 +265,27 @@ class GameForms(messages.Message):
 class HandForm(messages.Message):
     """HandForm for outbound game state information"""
     urlsafe_key = messages.StringField(1, required=True)
-    midMove = messages.BooleanField(2, required=True)
+    mid_move = messages.BooleanField(2, required=True)
     active = messages.StringField(3, required=True)
     hand = messages.StringField(4, required=True)
-    faceUpCard = messages.StringField(5, required=True)
+    draw_card = messages.StringField(5, required=True)
     instructions = messages.StringField(6, required=True)
 
 class GameHistoryForm(messages.Message):
     """GameRecordForm for completed game information"""
     urlsafe_key = messages.StringField(1, required=True)
-    userA = messages.StringField(2, required=True)
-    userB = messages.StringField(3, required=True)
-    gameOver = messages.BooleanField(4, required=True)
+    player_one = messages.StringField(2, required=True)
+    player_two = messages.StringField(3, required=True)
+    game_over = messages.BooleanField(4, required=True)
     winner = messages.StringField(5)
-    penaltyA = messages.IntegerField(6)
-    penaltyB = messages.IntegerField(7)
+    penalty_one = messages.IntegerField(6)
+    penalty_two = messages.IntegerField(7)
     history = messages.StringField(8)
 
 
 class MoveForm(messages.Message):
     """Used to start a move in an existing game"""
-    userName = messages.StringField(1, required=True)
+    user_name = messages.StringField(1, required=True)
     move = messages.StringField(2, required=True)
 
 
