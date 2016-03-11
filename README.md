@@ -6,10 +6,12 @@
 1. Update the value of application in app.yaml to the app ID you have registered in the App Engine admin console and would like to use to host your instance of this game.
 2. Set up and run the app in Google App Engine Launcher.
 3. Test API using localhost:8080/_ah/api/explorer 
- 
+
+## Testing Recommendation:
+You can easily change how many cards are dealt in a hand under constants.py. Big Hand = short game (but few players going "out").
 
 ##Game Description:
-Straight Gin is a variation of Gin Rummy. In the version implemented in this API, two players oppose each other in a single round. Each player is dealt 10 cards, and takes turns drawing new cards trying to shape his/her hand into acceptable runs and sets, holding all cards in their hands until the end. When all 10 cards have been sorted into a run or set, a player can attempt to go "out." The first player to successfully go out wins. If a player attempts to go out, but the hand fails (not all cards belonging to a run or set), the opponent automatically wins. If neither player can go "out" before the deck runs out of cards to draw, whoever has the lowest penalty (cards NOT sorted into runs or sets) in their hand wins.  Basic Gin Rummy instructions are available [here](https://en.wikipedia.org/wiki/Gin_rummy).
+Straight Gin is a variation of Gin Rummy. In the version implemented in this API, two players oppose each other in a single round. Each player is dealt 10 cards, and takes turns drawing new cards trying to shape his/her hand into acceptable runs and sets, holding all cards in their hands until the end. When all 10 cards have been sorted into a run or set, a player can attempt to go "out." The first player to successfully go out wins. If a player attempts to go out, but the hand fails (not all cards belonging to a run or set), the opponent automatically wins. If neither player can go "out" before the deck runs out of cards to draw, whoever has the lowest penalty (cards NOT sorted into runs or sets) in their hand wins.  Basic Gin Rummy instructions are available [here](https://en.wikipedia.org/wiki/Gin_rummy). Note that Aces (A) are LOW in Straight Gin (i.e. A = 1, never 14)
 
 
 ##Files Included:

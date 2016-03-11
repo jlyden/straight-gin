@@ -19,6 +19,7 @@ GET_GAME_REQUEST = endpoints.ResourceContainer(
 MOVE_REQUEST = endpoints.ResourceContainer(
     MoveForm,
     urlsafe_game_key=messages.StringField(1),)
+USER_GAME_REQUEST = endpoints.ResourceContainer(userName=messages.StringField(1))
 USER_REQUEST = endpoints.ResourceContainer(userName=messages.StringField(1),
                                            email=messages.StringField(2))
 
@@ -52,7 +53,7 @@ class StraightGinAPI(remote.Service):
         """Create new Game"""
         userA = User.query(User.name == request.userA).get()
         userB = User.query(User.name == request.userB).get()
-        if not userA and userB:
+        if not userA or not userB:
             raise endpoints.NotFoundException(
                     'One of those users does not exist!')
 
@@ -125,7 +126,7 @@ class StraightGinAPI(remote.Service):
         if game.gameOver:
             raise endpoints.NotFoundException('Game already over')
         if game.midMove:
-            raise endpoints.BadRequestException('Game is mid-Move. \"getHand\", select a discard, then \"endMove\"')
+            raise endpoints.BadRequestException('Game is mid-Move. \getHand\, select a discard, then \endMove\.')
 
         user = User.query(User.name == request.userName).get()
         if user.key != game.active:
@@ -203,7 +204,7 @@ class StraightGinAPI(remote.Service):
         if game.gameOver:
             raise endpoints.NotFoundException('Game already over')
         if not game.midMove:
-            raise endpoints.BadRequestException('You must \"startMove\" before you end it! Try \"getHand\" to see active player\'s hand and instructions for input.')
+            raise endpoints.BadRequestException('You must \startMove\ before you end it! Try \getHand\ to see active hand and instructions for input.')
 
         user = User.query(User.name == request.userName).get()
         if user.key != game.active:
@@ -252,29 +253,30 @@ class StraightGinAPI(remote.Service):
                     else:
                         if game.active != game.userA:
                             game.endGame(game.userA)
-                            textMove = 'lost with score of ' + str(penalty)
+                            textMove = 'did not successfully go out and lost with score of ' + str(penalty)
                             game.penaltyB = penalty
                             game.penaltyA = testHand(game.userAHand)
                             game.history.append((game.userB.get().name, textMove))
                         else:
                             game.endGame(game.userB)
-                            textMove = 'lost with score of ' + str(penalty)
+                            textMove = 'did not successfully go out and lost with score of ' + str(penalty)
                             game.penaltyA = penalty
                             game.penaltyB = testHand(game.userBHand)
                             game.history.append((game.userA.get().name, textMove))
 
             # reset flags
-            if game.active == game.userA:
-                game.active = game.userB
-            elif game.active == game.userB:
-                game.active = game.userA
-            game.midMove = False
+            if not game.gameOver:
+                if game.active == game.userA:
+                    game.active = game.userB
+                elif game.active == game.userB:
+                    game.active = game.userA
+                game.midMove = False
 
         game.put()
         return game.gameToForm()
 
 
-    @endpoints.method(request_message=USER_REQUEST,
+    @endpoints.method(request_message=USER_GAME_REQUEST,
                       response_message=GameForms,
                       path='user/games',
                       name='getUserGames',
@@ -284,9 +286,9 @@ class StraightGinAPI(remote.Service):
         user = User.query(User.name == request.userName).get()
         if not user:
             raise endpoints.NotFoundException(
-                    'A User with that name does not exist!')
+                    'User with that name does not exist!')
         games = Game.query(ndb.OR(Game.userA == user.key,
-                                    Game.UserB == user.key))
+                                    Game.userB == user.key))
         return GameForms(items=[game.gameToForm() for game in games])
 
 
@@ -313,7 +315,7 @@ class StraightGinAPI(remote.Service):
         return ScoreForms(items=[score.scoreToForm() for score in Score.query()])
 
 
-    @endpoints.method(request_message=USER_REQUEST,
+    @endpoints.method(request_message=USER_GAME_REQUEST,
                       response_message=ScoreForms,
                       path='scores/user/{userName}',
                       name='getUserScores',
@@ -336,8 +338,6 @@ class StraightGinAPI(remote.Service):
     def getUserRankings(self, request):
         """Return UserForms, ranked by winning percentage"""
         users = User.query().fetch()
-#       need to work on ordering ...
-#        users.order()
         return UserForms(items=[user.userToForm() for user in users])
 
 api = endpoints.api_server([StraightGinAPI])

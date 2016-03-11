@@ -1,4 +1,5 @@
 # models for StraightGinAPI
+# AFTER TESTING, CHANGE HAND_SIZE
 
 import constants
 from utils import dealHand
@@ -20,7 +21,7 @@ class User(ndb.Model):
         if self.totalPlayed > 0:
             return float(self.wins)/float(self.totalPlayed)
         else:
-            return 0
+            return 0.0
 
     def userToForm(self):
         return UserForm(name=self.name,
@@ -67,8 +68,8 @@ class Game(ndb.Model):
 
         # Prepare deck, hands, faceUpCard
         deck = constants.FULL_DECK
-        userAHand, deck = dealHand(10, deck)
-        userBHand, deck = dealHand(10, deck)
+        userAHand, deck = dealHand(constants.HAND_SIZE, deck)
+        userBHand, deck = dealHand(constants.HAND_SIZE, deck)
         faceUpCard, deck = dealHand(1, deck)
 
         # Set Game card values

@@ -1,50 +1,25 @@
-ahRkZXZ-c3RyYWlnaHRnaW4tMTIzNHIRCxIER2FtZRiAgICAgMDvCAw
-
-fc = S-Q
-j: C-5 C-7 C-8 C-K C-Q D-6 D-8 H-6 H-7 S-4
-
-s: C-4 D-4 H-4; C-3 C-9 C-J D-5 H-9 S-2 S-6 S-J
-
-
-
-
-
-
-
-** still wrong winner
-
-ahRkZXZ-c3RyYWlnaHRnaW4tMTIzNHIRCxIER2FtZRiAgICAgMCvCQw
+ahRkZXZ-c3RyYWlnaHRnaW4tMTIzNHIRCxIER2FtZRiAgICAgMDfCAw
 
 
 https://github.com/udacity/FSND-P4-Design-A-Game/blob/master/Project-Description.md
 
 1. Modify existing Guess-A-Number game to other game
-  - Games created
-  - Moves played
-  - Game state updated
-  - Game state stored
-  - Gate state retrieved
-
 2. Define/store what score is & whatever other relevant data for the game
- - Create README with 1) play instructions and 2) descriptions of endpoints
- 
-3. Document design decisions: additional properties added to models & why;
-   Trade-offs/struggles when implementing game logic? [Design.txt]
-
-4. Extend endpoints
-   * getUserGames - NEED TO TEST
-   * getGameHistory - NEED TO TEST
-   * cancelGame - NEED TO TEST
+3. Create README with 1) play instructions and 2) descriptions of endpoints
+4. Document design decisions: additional properties added to models & why; Trade-offs/struggles when implementing game logic? [Design.txt]
+5. Extend endpoints
    * get_user_rankings - method for ranking & endpoint that returns player name & rank
-
-5. Improve notifications
-
+6. Improve notifications
 --------------------------------------
-Test API after step 1.
-Works! - createUser, newGame, getGame, getHand, startMove, endMove, getScores, getUserScores
+Working API methods, including throwing proper errors:
+cancelGame, createUser, endMove [double-check win], getGame, getGameHistory, getHand, getScores, getUserGames, getUserRankings, getUserScores, newGame, startMove [check end of Deck]
 
-*** Something's wrong with end game early (wrong loser assigned)
+To Check:
+endMove at win
+startMove at end of Deck
+getUserRankings - working (but not sure why)
 
+----------------------------------------
 ----------------------------------------
 DONE Rule modifications:
 player who validly goes OUT is winner
