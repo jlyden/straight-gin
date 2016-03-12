@@ -1,17 +1,20 @@
-# API & game logic for Straight_Gin_API
+# Full Stack Nanodegree Project 4 - Straight Gin
+# Built by jennifer lyden on provided Tic-Tac-Toe template
+#
+# API & basic game logic for Straight_Gin_API
 
 import logging
 import endpoints
 import random
 from protorpc import remote, messages
 from google.appengine.api import memcache
-from google.appengine.ext import ndb
 from google.appengine.api import taskqueue
+from google.appengine.ext import ndb
 
 from models import User, Game, Score
-from models import StringMessage, NewGameForm, GameForm, MoveForm,\
-    ScoreForms, GameForms, UserForm, UserForms, HandForm, GameHistoryForm
-from utils import get_by_urlsafe, deal_hand, test_hand
+from models import UserForm, UserForms,NewGameForm, GameForm, GameForms, \
+    HandForm, GameHistoryForm, MoveForm, ScoreForm, ScoreForms, StringMessage
+from utils import get_by_urlsafe, deal_hand
 
 NEW_GAME_REQUEST = endpoints.ResourceContainer(NewGameForm)
 GET_GAME_REQUEST = endpoints.ResourceContainer(
@@ -24,11 +27,9 @@ USER_REQUEST = endpoints.ResourceContainer(
     user_name=messages.StringField(1),
     email=messages.StringField(2))
 
-
 @endpoints.api(name='gin', version='v1')
 class StraightGinAPI(remote.Service):
     """Game API"""
-
     @endpoints.method(request_message=USER_REQUEST,
                       response_message=StringMessage,
                       path='user',
@@ -61,7 +62,6 @@ class StraightGinAPI(remote.Service):
         game = Game.new_game(player_one.key, player_two.key)
         return game.game_to_form()
 
-
     @endpoints.method(request_message=GET_GAME_REQUEST,
                       response_message=GameForm,
                       path='game/{urlsafe_game_key}',
@@ -77,7 +77,6 @@ class StraightGinAPI(remote.Service):
             return game.game_to_form()
         else:
             raise endpoints.NotFoundException('Game not found!')
-
 
     @endpoints.method(request_message=GET_GAME_REQUEST,
                       response_message=StringMessage,
@@ -99,7 +98,6 @@ class StraightGinAPI(remote.Service):
                 game.key.delete()
         return StringMessage(message='Game deleted!')
 
-
     @endpoints.method(request_message=GET_GAME_REQUEST,
                       response_message=HandForm,
                       path='game/{urlsafe_game_key}/hand',
@@ -112,7 +110,6 @@ class StraightGinAPI(remote.Service):
             return game.hand_to_form()
         else:
             raise endpoints.NotFoundException('Game not found!')
-
 
     @endpoints.method(request_message=MOVE_REQUEST,
                       response_message=HandForm,
@@ -173,7 +170,6 @@ class StraightGinAPI(remote.Service):
         else:
             return game.history_to_form()
 
-
     @endpoints.method(request_message=MOVE_REQUEST,
                       response_message=GameForm,
                       path='game/{urlsafe_game_key}/end_move',
@@ -201,7 +197,6 @@ class StraightGinAPI(remote.Service):
             hand = game.hand_two
 
         move = request.move.split()
-
         # remove discard from hand and set as draw_card
         if not move[0] in hand:
             raise endpoints.BadRequestException('That card is not in your hand! Enter your discard. If you are ready to go out, also type OUT. Example: D-K OUT')
@@ -228,7 +223,6 @@ class StraightGinAPI(remote.Service):
         game.put()
         return game.game_to_form()
 
-
     @endpoints.method(request_message=USER_GAME_REQUEST,
                       response_message=GameForms,
                       path='user/games',
@@ -244,7 +238,6 @@ class StraightGinAPI(remote.Service):
                                     Game.player_two == user.key))
         return GameForms(items=[game.game_to_form() for game in games])
 
-
     @endpoints.method(request_message=GET_GAME_REQUEST,
                       response_message=GameHistoryForm,
                       path='game/{urlsafe_game_key}/history',
@@ -258,7 +251,6 @@ class StraightGinAPI(remote.Service):
         else:
             raise endpoints.NotFoundException('Game not found!')
 
-
     @endpoints.method(response_message=ScoreForms,
                       path='scores',
                       name='get_scores',
@@ -266,7 +258,6 @@ class StraightGinAPI(remote.Service):
     def get_scores(self, request):
         """Return all scores"""
         return ScoreForms(items=[score.score_to_form() for score in Score.query()])
-
 
     @endpoints.method(request_message=USER_GAME_REQUEST,
                       response_message=ScoreForms,
@@ -283,14 +274,24 @@ class StraightGinAPI(remote.Service):
                                     Score.loser == user.key))
         return ScoreForms(items=[score.score_to_form() for score in scores])
 
+    @endpoints.method(response_message=UserForms,
+                      path='user/ranking/win_rate',
+                      name='get_rank_by_win_rate',
+                      http_method='GET')
+    def get_rank_by_win_rate(self, request):
+        """Return UserForms, ranked by winning percentage"""
+        q_users = User.query().fetch()
+#        users = q_users.order(User.win_rate)
+        return UserForms(items=[user.user_to_form() for user in q_users])
 
     @endpoints.method(response_message=UserForms,
-                      path='user/ranking',
-                      name='get_user_rankings',
+                      path='user/ranking/avg_penalty',
+                      name='get_rank_by_avg_penalty',
                       http_method='GET')
-    def get_user_rankings(self, request):
-        """Return UserForms, ranked by winning percentage"""
-        users = User.query().fetch()
-        return UserForms(items=[user.user_to_form() for user in users])
+    def get_rank_by_avg_penalty(self, request):
+        """Return UserForms, ranked by average penalty per game"""
+        q_users = User.query().fetch()
+#        users = q_users.order(User.avg_penalty)
+        return UserForms(items=[user.user_to_form() for user in q_users])
 
 api = endpoints.api_server([StraightGinAPI])

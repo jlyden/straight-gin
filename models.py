@@ -1,5 +1,9 @@
+# Full Stack Nanodegree Project 4 - Straight Gin
+# Built by jennifer lyden on provided Tic-Tac-Toe template
+#
 # models for Straight_Gin_API
-# AFTER TESTING, CHANGE HAND_SIZE
+
+# AFTER TESTING, change HAND_SIZE in constants.py
 
 import constants
 from utils import deal_hand, test_hand
@@ -7,7 +11,8 @@ from datetime import date
 from protorpc import messages
 from google.appengine.ext import ndb
 
-# - - - - - Objects - - - - -
+
+# - - - - Objects - User - - - - -
 
 class User(ndb.Model):
     """User profile"""
@@ -15,26 +20,14 @@ class User(ndb.Model):
     email = ndb.StringProperty(required=True)
     wins = ndb.IntegerProperty(default=0)
     games = ndb.IntegerProperty(default=0)
+    win_rate = ndb.FloatProperty(default=0.0)
     total_penalty = ndb.IntegerProperty(default=0)
+    avg_penalty = ndb.FloatProperty(default=0.0)
 
-    @property
-    def win_rate(self):
-        if self.games > 0:
-            return float(self.wins)/float(self.games)
-        else:
-            return 0.0
-
-    @property
-    def avg_penalty(self):
-        if self.games > 0:
-            return float(self.total_penalty)/float(self.games)
-        else:
-            return 0.0
 
     def user_to_form(self):
         return UserForm(name=self.name,
                         email=self.email,
-                        wins=self.wins,
                         games=self.games,
                         win_rate=self.win_rate,
                         avg_penalty=self.avg_penalty)
@@ -43,30 +36,36 @@ class User(ndb.Model):
         """Add a win"""
         self.wins += 1
         self.games += 1
+        self.win_rate = float(self.wins)/float(self.games)
         self.put()
 
     def add_loss(self):
         """Add a loss"""
         self.games += 1
+        self.win_rate = float(self.wins)/float(self.games)
         self.put()
 
     def add_penalty(self,penalty):
         """Add to total_penalty"""
         self.total_penalty += penalty
+        if self.total_penalty > 0:
+            self.avg_penalty = float(self.total_penalty)/float(self.games)
         self.put()
 
 
+# - - - - Objects - Game - - - - -
+
 class Game(ndb.Model):
     """Game object"""
-    deck = ndb.PickleProperty(required=True)
     player_one = ndb.KeyProperty(required=True, kind='User')
     player_two = ndb.KeyProperty(required=True, kind='User')
+    deck = ndb.PickleProperty(required=True)
     hand_one = ndb.PickleProperty(required=True)
     hand_two = ndb.PickleProperty(required=True)
-    active = ndb.KeyProperty(required=True)       # User whose turn it is
     draw_card = ndb.PickleProperty(required=True) # Visible draw card
-    mid_move = ndb.BooleanProperty(required=True, default=False)
+    active = ndb.KeyProperty(required=True)       # User whose turn it is
     instructions = ndb.StringProperty()
+    mid_move = ndb.BooleanProperty(required=True, default=False)
     game_over = ndb.BooleanProperty(required=True, default=False)
     winner = ndb.KeyProperty()
     penalty_one = ndb.IntegerProperty()
@@ -81,7 +80,7 @@ class Game(ndb.Model):
                     active=player_one)
 
         # Prepare deck, hands, draw_card
-        # Note that deck is transformed with each card dealt
+        # Note that deck is transformed (and returned) with each hand/card dealt
         deck = constants.FULL_DECK
         game.hand_one, deck = deal_hand(constants.HAND_SIZE, deck)
         game.hand_two, deck = deal_hand(constants.HAND_SIZE, deck)
@@ -123,7 +122,7 @@ class Game(ndb.Model):
             else:
                 hand = self.hand_two
 
-            # convert sorted hand & draw_card to strings
+            # convert hand (sorted) & draw_card to strings
             sorted_hand = sorted(hand)
             string_hand = ' '.join(str(card) for card in sorted_hand)
             string_card = ' '.join(self.draw_card)
@@ -146,11 +145,9 @@ class Game(ndb.Model):
         """
         chosen: boolean representing if active player has chosen to go "OUT"
         """
-        # check both players' hands and record penalties
+        # check both players' hands
         self.penalty_one = test_hand(self.hand_one)
-        self.player_one.get().add_penalty(self.penalty_one)
         self.penalty_two = test_hand(self.hand_two)
-        self.player_two.get().add_penalty(self.penalty_two)
 
         # if game ended because no more cards to draw
         if not chosen:
@@ -175,6 +172,11 @@ class Game(ndb.Model):
                     self.win_game(self.player_two)
                 else:
                     self.win_game(self.player_one)
+
+        # record player penalties
+        self.player_one.get().add_penalty(self.penalty_one)
+        self.player_two.get().add_penalty(self.penalty_two)
+
         self.mid_move = False
         self.put()
 
@@ -192,7 +194,6 @@ class Game(ndb.Model):
         # Update the user models
         winner.get().add_win()
         loser.get().add_loss()
-
 
     def history_to_form(self):
         """
@@ -215,6 +216,8 @@ class Game(ndb.Model):
         return form
 
 
+# - - - - Objects - Score - - - - -
+
 class Score(ndb.Model):
     """Score object"""
     date = ndb.DateProperty(required=True)
@@ -227,21 +230,22 @@ class Score(ndb.Model):
                          loser=self.loser.get().name)
 
 
-# - - - - - Forms - - - - -
+# - - - - Forms - User - - - - -
 
 class UserForm(messages.Message):
     """User Form"""
     name = messages.StringField(1, required=True)
     email = messages.StringField(2)
-    wins = messages.IntegerField(3)
-    games = messages.IntegerField(4, required=True)
-    win_rate = messages.FloatField(5)
-    avg_penalty = messages.FloatField(6)
+    games = messages.IntegerField(3, required=True)
+    win_rate = messages.FloatField(4)
+    avg_penalty = messages.FloatField(5)
 
 class UserForms(messages.Message):
     """Container for multiple User Forms"""
     items = messages.MessageField(UserForm, 1, repeated=True)
 
+
+# - - - - Forms - Game - - - - -
 
 class NewGameForm(messages.Message):
     """Used to create a new game"""
@@ -273,7 +277,7 @@ class HandForm(messages.Message):
     instructions = messages.StringField(6, required=True)
 
 class GameHistoryForm(messages.Message):
-    """GameRecordForm for completed game information"""
+    """GameHistoryForm for detailed game information"""
     urlsafe_key = messages.StringField(1, required=True)
     player_one = messages.StringField(2, required=True)
     player_two = messages.StringField(3, required=True)
@@ -283,12 +287,13 @@ class GameHistoryForm(messages.Message):
     penalty_two = messages.IntegerField(7)
     history = messages.StringField(8)
 
-
 class MoveForm(messages.Message):
-    """Used to start a move in an existing game"""
+    """Used to make a move in an existing game"""
     user_name = messages.StringField(1, required=True)
     move = messages.StringField(2, required=True)
 
+
+# - - - - Forms - Score - - - - -
 
 class ScoreForm(messages.Message):
     """ScoreForm for outbound Score information"""

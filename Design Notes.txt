@@ -1,11 +1,19 @@
+ahRkZXZ-c3RyYWlnaHRnaW4tMTIzNHIRCxIER2FtZRiAgICAgOD3CQw
+
+j: C-5 H-5 S-5 C-6 D-6 S-6 S-3
+
+s: C-8 C-9 H-9 C-K D-K H-K S-K
+
 https://github.com/udacity/FSND-P4-Design-A-Game/blob/master/Project-Description.md
 
 1. Modify existing Guess-A-Number game to other game
 2. Define/store what score is & whatever other relevant data for the game
 3. Create README with 1) play instructions and 2) descriptions of endpoints
 4. Document design decisions: additional properties added to models & why; Trade-offs/struggles when implementing game logic? [Design.txt]
-5. Extend endpoints
-   * get_user_rankings - method for ranking & endpoint that returns player name & rank
+5. Extend endpoints - Issues (maybe i'm using Scores to calculate these!)
+    rank_by_win_rate
+    rank_by_avg_penalty
+   
 6. Improve notifications
 --------------------------------------
 Working API methods, including throwing proper errors:

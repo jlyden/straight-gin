@@ -1,3 +1,6 @@
+# Full Stack Nanodegree Project 4 - Straight Gin
+# Built by jennifer lyden on provided Tic-Tac-Toe template
+#
 # constants for Straight_Gin_API
 
 FULL_DECK = ['H-A','H-2','H-3','H-4','H-5','H-6','H-7',

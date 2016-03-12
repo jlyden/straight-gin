@@ -1,3 +1,6 @@
+# Full Stack Nanodegree Project 4 - Straight Gin
+# Built by jennifer lyden on provided Tic-Tac-Toe template
+#
 # utility functions for Straight_Gin_API
 
 import constants
@@ -7,7 +10,8 @@ from itertools import groupby
 from google.appengine.ext import ndb
 
 def get_by_urlsafe(urlsafe, model):
-    """Returns an ndb.Model entity that the urlsafe key points to. Checks
+    """
+    Returns an ndb.Model entity that the urlsafe key points to. Checks
         that the type of entity returned is of the correct kind. Raises an
         error if the key String is malformed or the entity is of the incorrect
         kind
@@ -18,7 +22,9 @@ def get_by_urlsafe(urlsafe, model):
         The entity that the urlsafe Key string points to or None if no entity
         exists.
     Raises:
-        ValueError:"""
+        ValueError
+    This function is used verbatim from Tic-Tac-Toe Template
+    """
     try:
         key = ndb.Key(urlsafe=urlsafe)
     except TypeError:
