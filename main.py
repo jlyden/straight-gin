@@ -41,6 +41,7 @@ class SendReminderEmail(webapp2.RequestHandler):
                                subject,
                                body)
 
+
 class SendMoveEmail(webapp2.RequestHandler):
     def post(self):
         """
@@ -70,17 +71,11 @@ class SendMoveEmail(webapp2.RequestHandler):
                " Your hand is {}. The visible card is {}." \
                " When you go to start_move, enter 1 to take visible card" \
                " or 2 to draw from pile. The game key is {}.". \
-                       format(user.name,
-                              string_hand,
-                              string_card,
-                              game.key.urlsafe())
+               format(user.name, string_hand, string_card, game.key.urlsafe())
         logging.debug(body)
         # Arguments to send_mail are: from, to, subject, body
-        mail.send_mail('noreply@{}.appspotmail.com'.
-                               format(app_identity.get_application_id()),
-                               user.email,
-                               subject,
-                               body)
+        mail.send_mail('noreply@{}.appspotmail.com'.format(
+            app_identity.get_application_id()), user.email, subject, body)
 
 app = webapp2.WSGIApplication([
     ('/crons/send_reminder', SendReminderEmail),

@@ -9,6 +9,7 @@ import random
 from itertools import groupby
 from google.appengine.ext import ndb
 
+
 def get_by_urlsafe(urlsafe, model):
     """
     Returns an ndb.Model entity that the urlsafe key points to. Checks
@@ -42,9 +43,11 @@ def get_by_urlsafe(urlsafe, model):
         raise ValueError('Incorrect Kind')
     return entity
 
+
 def deal_hand(deal, deck):
     """
-    Return list of strings of quantity "deal" and list of remaining strings in "deck"
+    Return list of strings of quantity "deal"
+        and list of remaining strings in "deck"
     deal: positive integer
     deck: list of strings
     """
@@ -57,6 +60,7 @@ def deal_hand(deal, deck):
         return hand, deck
     except IndexError:
         return None, [0]
+
 
 def test_hand(hand):
     """
@@ -89,7 +93,8 @@ def test_hand(hand):
                     if len(group) > 3:
                         long_runs.append(group)
                     # remove cards used in run from suit
-                    suit[:] = [item for i,item in enumerate(suit) if item not in group]
+                    suit[:] = [item for i, item in enumerate(suit)
+                               if item not in group]
             # after removing from suit all cards in run-groups,
             # dump remaining cards in suit to leftovers
             leftovers += suit
@@ -106,6 +111,7 @@ def test_hand(hand):
     penalty = sum(leftovers)
     return penalty
 
+
 def clean_hand(hand):
     """
     Remove '-' & face-card letters from human-readable card representations
@@ -117,7 +123,7 @@ def clean_hand(hand):
     clean_hand = []
     for card in hand:
         # remove - from card representation
-        strip_card = card.replace('-','')
+        strip_card = card.replace('-', '')
         # if face card, replace with numerical equivalent (i.e. J = Jack = 11)
         if ord(strip_card[1]) in xrange(ord('A'), ord('Z')+1):
             # Keep letter for suit
@@ -152,6 +158,7 @@ def clean_hand(hand):
             spades.append(just_number)
     return suits
 
+
 def group_consecutives(vals, step=1):
     """
     Return list of consecutive lists of numbers from vals (number list).
@@ -171,6 +178,7 @@ def group_consecutives(vals, step=1):
         expect = v + step
     return result
 
+
 def check_sets(leftovers, long_runs):
     """
     Sort & group leftovers by number
@@ -181,11 +189,12 @@ def check_sets(leftovers, long_runs):
     """
     # group leftovers by number
     leftovers.sort()
-    sets = [list(g) for k,g in groupby(leftovers)]
+    sets = [list(g) for k, g in groupby(leftovers)]
     for set in sets:
         # if set of 3 or 4, just remove cards from leftovers
         if len(set) == 3 or len(set) == 4:
-            leftovers[:] = [item for i,item in enumerate(leftovers) if item not in set]
+            leftovers[:] = [item for i, item in enumerate(leftovers)
+                            if item not in set]
         # if set of 2 or 1, look for help in long_runs
         elif len(set) == 2 or len(set) == 1:
             for run in long_runs:
@@ -193,16 +202,19 @@ def check_sets(leftovers, long_runs):
                 # we can finish the set with that card!
                 # 1) remove set cards from leftovers
                 # 2) remove run from long_run
-                # 3) if run > 4 (long enough to remove one card and still BE a long_run),
-                #    put new_run (without the used set card) back in long_run
+                # 3) if run > 4 (long enough to remove one card and still
+                #    BE a long_run), put new_run (without the used set card)
+                #    back in long_run
                 if set[0] == run[0]:
-                    leftovers[:] = [item for i,item in enumerate(leftovers) if item not in set]
+                    leftovers[:] = [item for i, item in enumerate(leftovers)
+                                    if item not in set]
                     long_runs.remove(run)
                     if len(run) > 4:
                         new_run = run[1:]
                         long_runs.append(new_run)
                 elif set[0] == run[-1]:
-                    leftovers[:] = [item for i,item in enumerate(leftovers) if item not in set]
+                    leftovers[:] = [item for i, item in enumerate(leftovers)
+                                    if item not in set]
                     long_runs.remove(run)
                     if len(run) > 4:
                         new_run = run[:-1]
