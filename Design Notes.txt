@@ -1,13 +1,14 @@
 TODO:
+- review Notes from end of Scalable Apps re: logging
 
 
 https://github.com/udacity/FSND-P4-Design-A-Game/blob/master/Project-Description.md
+https://cloud.google.com/appengine/articles/modeling http://stackoverflow.com/questions/24392270/many-to-many-relationship-in-ndb
 
 1. Explore existing game
 2a. Modify existing Guess-A-Number game to other game
 2b. Define/store what score is & whatever other relevant data for the game
-3. Extend endpoints - Issues (maybe i'm using Scores to calculate these!)
-https://cloud.google.com/appengine/articles/modeling http://stackoverflow.com/questions/24392270/many-to-many-relationship-in-ndb
+3. Extend endpoints
     "get_high_scores" - accept optional parameter number_of_results -> rank_by_avg_penalty
     "get_user_rankings" -> rank_by_win_rate
    

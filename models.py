@@ -183,6 +183,7 @@ class Game(ndb.Model):
         loser = self.player_two if winner == self.player_one else self.player_one
         # Add the game to the score 'board'
         score = Score(date=date.today(),
+                      game=self.key,
                       winner=winner,
                       loser=loser,
                       penalty_winner=penalty_winner,
@@ -215,6 +216,7 @@ class Game(ndb.Model):
 class Score(ndb.Model):
     """Score object"""
     date = ndb.DateProperty(required=True)
+    game = ndb.KeyProperty(required=True, kind="Game")
     winner = ndb.KeyProperty(required=True, kind="User")
     loser = ndb.KeyProperty(required=True, kind="User")
     penalty_winner = ndb.IntegerProperty(required=True)
