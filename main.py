@@ -42,7 +42,7 @@ class SendReminderEmail(webapp2.RequestHandler):
                                body)
 
 class SendMoveEmail(webapp2.RequestHandler):
-    def get(self):
+    def post(self):
         """
         Send a reminder email to player (if email address on file) each time
         the opponent in a game completes a move. Email body provides
@@ -50,22 +50,33 @@ class SendMoveEmail(webapp2.RequestHandler):
         Uses appEngine Push Queue
         """
         app_id = app_identity.get_application_id()
-        users = User.query(User.email != None)
+        user = get_by_urlsafe(self.request.get('user_key'), User)
+        game = get_by_urlsafe(self.request.get('game_key'), Game)
 
-        for user in users:
-            q = user.all_games()
-            games = q.filter(Game.game_over == False)
-            if games.count() > 0:
-                subject = 'Active game reminder!'
-                body = 'Hello {}, you have {} games in progress.' \
-                       ' Their keys are: {}'.\
+        # Get hand of current player
+        if game.active == game.player_one:
+            hand = game.hand_one
+        else:
+            hand = game.hand_two
+
+        # Format game data for e-mail
+        sorted_hand = sorted(hand)
+        string_hand = ' '.join(str(card) for card in sorted_hand)
+        string_card = ' '.join(game.draw_card)
+
+        # Prepare e-mail
+        subject = 'Your turn!'
+        body = "Hello {}: Your opponent just moved, so it's your turn." \
+               " Your hand is {}. The visible card is {}." \
+               " When you go to start_move, enter 1 to take visible card" \
+               " or 2 to draw from pile. The game key is {}.". \
                        format(user.name,
-                              games.count(),
-                              ', '.join(game.key.urlsafe() for game in games))
-                logging.debug(body)
-                # Send emails
-                # Arguments to send_mail are: from, to, subject, body
-                mail.send_mail('noreply@{}.appspotmail.com'.
+                              string_hand,
+                              string_card,
+                              game.key.urlsafe())
+        logging.debug(body)
+        # Arguments to send_mail are: from, to, subject, body
+        mail.send_mail('noreply@{}.appspotmail.com'.
                                format(app_identity.get_application_id()),
                                user.email,
                                subject,
@@ -73,5 +84,5 @@ class SendMoveEmail(webapp2.RequestHandler):
 
 app = webapp2.WSGIApplication([
     ('/crons/send_reminder', SendReminderEmail),
-#    ('/tasks/send_move_email', SendMoveEmail),
+    ('/tasks/send_move_email', SendMoveEmail),
 ], debug=True)

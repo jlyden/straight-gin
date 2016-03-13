@@ -220,6 +220,10 @@ class StraightGinAPI(remote.Service):
                     game.active = game.player_one
                 game.mid_move = False
                 game.put()
+                # send e-mail reminder
+                taskqueue.add(url='/tasks/send_move_email',
+                        params={'user_key': game.active.urlsafe(),
+                                'game_key': game.key.urlsafe()})
             return game.game_to_form()
 
     @endpoints.method(request_message=GET_GAME_REQUEST,

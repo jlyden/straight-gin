@@ -42,11 +42,9 @@ def get_by_urlsafe(urlsafe, model):
         raise ValueError('Incorrect Kind')
     return entity
 
-
 def deal_hand(deal, deck):
     """
     Return list of strings of quantity "deal" and list of remaining strings in "deck"
-
     deal: positive integer
     deck: list of strings
     """
@@ -60,13 +58,10 @@ def deal_hand(deal, deck):
     except IndexError:
         return None, [0]
 
-
 def test_hand(hand):
     """
     Calculate deadwood penalty of Straight_Gin hand
-
     hand: list of strings
-
     Return integer penalty of unplayable ("deadwood") cards in hand
 
     Resources consulted:
@@ -75,7 +70,6 @@ def test_hand(hand):
     http://stackoverflow.com/questions/1450111/delete-many-elements-of-list-python
     http://stackoverflow.com/questions/7025581/how-can-i-group-equivalent-items-together-in-a-python-list
     """
-
     suits = clean_hand(hand)
 
     # set up variables
@@ -85,7 +79,6 @@ def test_hand(hand):
     # look for runs within each suit
     for suit in suits:
         suit.sort()
-
         # if at least 3 cards in suit, test for a run
         if len(suit) > 2:
             groups = group_consecutives(suit)
@@ -97,17 +90,14 @@ def test_hand(hand):
                         long_runs.append(group)
                     # remove cards used in run from suit
                     suit[:] = [item for i,item in enumerate(suit) if item not in group]
-
             # after removing from suit all cards in run-groups,
             # dump remaining cards in suit to leftovers
             leftovers += suit
-
         # if too few cards in suit for a run, add cards in suit to leftovers
         else:
             leftovers += suit
 
-    # look for sets in leftovers
-    # check leftovers for sets of duplicates
+    # check leftovers for sets of duplicate numbers
     leftovers, long_runs = check_sets(leftovers, long_runs)
     # (twice in case of buried last cards)
     leftovers, long_runs = check_sets(leftovers, long_runs)
@@ -116,14 +106,12 @@ def test_hand(hand):
     penalty = sum(leftovers)
     return penalty
 
-
 def clean_hand(hand):
     """
     Remove '-' & face-card letters from human-readable card representations
     Split hand by suit & strip suit-letters
 
     hand: list of strings
-
     Return list of lists, where each inner list includes cards of same suit
     """
     clean_hand = []
@@ -162,9 +150,7 @@ def clean_hand(hand):
         elif card[0] == 'S':
             just_number = int(card[1:])
             spades.append(just_number)
-
     return suits
-
 
 def group_consecutives(vals, step=1):
     """
@@ -185,7 +171,6 @@ def group_consecutives(vals, step=1):
         expect = v + step
     return result
 
-
 def check_sets(leftovers, long_runs):
     """
     Sort & group leftovers by number
@@ -198,11 +183,9 @@ def check_sets(leftovers, long_runs):
     leftovers.sort()
     sets = [list(g) for k,g in groupby(leftovers)]
     for set in sets:
-
         # if set of 3 or 4, just remove cards from leftovers
         if len(set) == 3 or len(set) == 4:
             leftovers[:] = [item for i,item in enumerate(leftovers) if item not in set]
-
         # if set of 2 or 1, look for help in long_runs
         elif len(set) == 2 or len(set) == 1:
             for run in long_runs:

@@ -1,35 +1,38 @@
 # Full Stack Nanodegree Project 4 - Straight Gin
 # Built by jennifer lyden on provided Tic-Tac-Toe template
 
-
-## Set-Up Instructions:
-1. Update the value of application in app.yaml to the app ID you have registered in the App Engine admin console and would like to use to host your instance of this game.
-2. Set up and run the app in Google App Engine Launcher.
-3. Test API using localhost:8080/_ah/api/explorer 
-
-## Testing Recommendation:
-You can easily change how many cards are dealt in a hand under constants.py. Big Hand = short game (but few players going "out").
+## Synopsis
+Back-end for Straight Gin game with modifications described in Game Description below. Built for Google AppEngine - platform agnostic with support for variety of front-end clients.
 
 ##Game Description:
-Straight Gin is a variation of Gin Rummy. In the version implemented in this API, two players oppose each other in a single round. Each player is dealt 10 cards, and takes turns drawing new cards trying to shape his/her hand into acceptable runs and sets, holding all cards in their hands until the end. When all 10 cards have been sorted into a run or set, a player can attempt to go "out." The first player to successfully go out wins. If a player attempts to go out, but the hand fails (not all cards belonging to a run or set), the opponent automatically wins. If neither player can go "out" before the deck runs out of cards to draw, whoever has the lowest penalty (cards NOT sorted into runs or sets) in their hand wins.  Basic Gin Rummy instructions are available [here](https://en.wikipedia.org/wiki/Gin_rummy). Note that Aces (A) are LOW in Straight Gin (i.e. A = 1, never 14)
+Straight Gin is a variation of Gin Rummy. In the version implemented in this API, two players oppose each other in a single round. Players are dealt 10 cards each (but size of hand can be easily modified for a new game), and take turns drawing new cards trying to shape their hands into acceptable runs and sets, holding all cards in their hands until the end. When all cards in hand have been sorted into a run or set, a player can attempt to go "out." The first player to successfully go out wins. If a player attempts to go out, but the hand fails (not all cards belonging to a run or set), the opponent automatically wins. If neither player can go "out" before the deck runs out of cards to draw, whoever has the lowest penalty (cards NOT sorted into runs or sets) in their hand wins.  Basic Gin Rummy instructions are available [here](https://en.wikipedia.org/wiki/Gin_rummy). Note that Aces (A) are LOW in Straight Gin (i.e. A = 1, never 14)
 
+## Set-Up Instructions:
+1. Download zip file and extract game files (see Files Included). 
+2. Update the value of application in app.yaml to the app ID you have registered in the App Engine admin console.
+3. Set up and run the app in Google App Engine Launcher.
+4. Test API using localhost:8080/_ah/api/explorer (or whatever port # your localhost has available) 
 
 ##Files Included:
- - api.py: Contains endpoints and game playing logic.
+ - api.py: Contains endpoints and game play logic.
  - app.yaml: App configuration.
- - constants.py: Constants required by game (FULL_DECK & LIBRARY).
+ - constants.py: Constants required by game (FULL_DECK, LIBRARY, HAND_SIZE).
  - cron.yaml: Cronjob configuration.
- - main.py: Handler for taskqueue handler.
- - models.py: Entity and message definitions including helper methods.
+ - design.txt: Explanation of design decisions.
+ - main.py: Handler for cronjobs and taskqueue.
+ - models.py: Entity and Message definitions including helper methods.
+ - README.md: This file.
  - utils.py: Contains helper functions:
     - get_by_urlsafe: retrieves ndb.Models using urlsafe key.
-    - dealHand: deals hands (as many cards as specified); also used to draw single card from deck during gameplay.
-    - testHand: verifies if all cards in a hand belong to runs or sets, and returns penalty if unused cards remain
-    - cleanHand: used by testHand
-    - group_consecutives: used by testHand
-    - checkSets: used by testHand
+    - deal_hand: returns (1) "deal" of specified number of cards and (2) deck of remaining cards.
+    - test_hand: verifies if all cards in a hand belong to runs or sets, and returns penalty if unused cards remain
+    - clean_hand: used by test_hand
+    - group_consecutives: used by test_hand
+    - check_sets: used by test_hand
     
---- NEED TO EDIT and ADD Endpoints
+## Testing Recommendation:
+You can easily change how many cards are dealt in a hand under constants.py. Big Hand = short game (but few players going "out" by choice).
+
 ##Endpoints Included:
  - **createUser**
     - Path: 'user'
