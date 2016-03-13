@@ -31,132 +31,144 @@ Straight Gin is a variation of Gin Rummy. In the version implemented in this API
     - check_sets: used by test_hand
     
 ## Testing Recommendation:
-You can easily change how many cards are dealt in a hand under constants.py. Big Hand = short game (but few players going "out" by choice).
+You can easily change how many cards are dealt in a hand in  constants.py. Big Hand = short game (but few players going "out" by choice).
 
 ##Endpoints Included:
- - **createUser**
+ - **create_user**
     - Path: 'user'
     - Method: POST
-    - Parameters: userName
+    - Parameters: user_name
     - Returns: Message confirming creation of the User.
-    - Description: Creates a new User. userName provided must be unique. Will 
-    raise a ConflictException if a User with that userName already exists.
+    - Description: Creates User with unique user_name. Raises  ConflictException if User with user_name already exists.
     
- - **newGame**
+ - **new_game**
     - Path: 'game'
     - Method: POST
-    - Parameters: userA, userB
+    - Parameters: player_one, player_two
     - Returns: GameForm with neutral game state (no user hand displayed)
-    - Description: Creates a new Game between `userA` and `userB`
-     
- - **getGame**
+    - Description: Creates a new Game between player_one and player_two
+
+ - **get_game**
     - Path: 'game/{urlsafe_game_key}'
     - Method: GET
     - Parameters: urlsafe_game_key
     - Returns: GameForm with current neutral game state (no user hand displayed)
     - Description: Returns the current state of a game, including active player and faceUpCard, but not active player's hand (in case opponent is looking)
     
- - **getHand**
-    - Path: 'game/{urlsafe_game_key}/hand'
-    - Method: GET
-    - Parameters: urlsafe_game_key
-    - Returns: HandForm with active player's hand and game state information
-    - Description: Returns the active player's hand, plus current faceUpCard and instructions to startMove - player enters 1 to take faceUpCard or 2 to take hidden card from deck
-
- - **startMove**
-    - Path: 'game/{urlsafe_game_key}/startMove'
+ - **start_move**
+    - Path: 'game/{urlsafe_game_key}/start-move'
     - Method: PUT
-    - Parameters: urlsafe_game_key, userName, move
-    - Returns: HandForm with new game state.
+    - Parameters: urlsafe_game_key, user_name, move
+    - Returns: HandForm with mid-move game state.
     - Description: Accepts a move (1 or 2) and returns the updated state of the game as displayed on "HandForm", including updated instructions. Active player must now select/input card to discard from his/her hand, and add "OUT" if ready to go out.
     
- - **endMove**
-    - Path: 'game/{urlsafe_game_key}/endMove'
+ - **end_move**
+    - Path: 'game/{urlsafe_game_key}/end-move'
     - Method: PUT
-    - Parameters: urlsafe_game_key, userName, move
+    - Parameters: urlsafe_game_key, user_name, move
     - Returns: GameForm with new game state.
-    - Description: Accepts a move (discarded card and, optionally, "OUT") and returns the updated state of the game on "GameForm" - new active player and new faceUpCard (that discard).
+    - Description: Accepts a move (discarded card and, optionally, "OUT") and returns the updated state of the game on "GameForm" - new active player and new draw_card (which was just discarded).
     
- - **getScores**
+ - **get_scores**
     - Path: 'scores'
     - Method: GET
     - Parameters: None
     - Returns: ScoreForms.
     - Description: Returns all Scores in the database (unordered).
     
- - **getUserScores**
-    - Path: 'scores/user/{userName}'
+ - **get_user_scores**
+    - Path: 'scores/user/{user_name}'
     - Method: GET
-    - Parameters: userName
+    - Parameters: user_name
     - Returns: ScoreForms. 
-    - Description: Returns all Scores recorded by the provided player (unordered).
-    Will raise a NotFoundException if the User does not exist.
-    
+    - Description: Returns all Scores recorded by the provided player (unordered). Raises NotFoundException if User does not exist.
+
 
 ##Additional endpoints
- - **getUserGames**
-    - Path: 'user/games'
-    - Method: GET
-    - Parameters: userName
-    - Returns: GameForms with 1 or more GameForm inside.
-    - Description: Returns the current state of all the User's active games.
-    
- - **cancelGame**
+ - **cancel_game**
     - Path: 'game/{urlsafe_game_key}'
     - Method: DELETE
     - Parameters: urlsafe_game_key
     - Returns: StringMessage confirming deletion
-    - Description: Deletes the game. If the game is already completed an error
-    will be thrown.
-    
- - **getUserRankings**
-    - Path: 'user/ranking'
-    - Method: GET
-    - Parameters: None
-    - Returns: UserForms
-    - Description: Rank all players that have played at least one game by their
-    winning percentage and return.
+    - Description: Deletes game-in-progress. If the game is already completed an error will be thrown.
 
- - **getGameHistory**
+ - **get_hand**
+    - Path: 'game/{urlsafe_game_key}/hand'
+    - Method: GET
+    - Parameters: urlsafe_game_key
+    - Returns: HandForm with active player's hand and game state information
+    - Description: Returns the active player's hand, plus current draw_card and instructions to start_move - player enters 1 to take draw_card or 2 to take hidden card from deck
+
+ - **get_game_history**
     - Path: 'game/{urlsafe_game_key}/history'
     - Method: GET
     - Parameters: urlsafe_game_key
     - Returns: GameHistoryForm presenting game history and other details.
-    - Description: Returns game history, a stringified list of tuples reporting whether player took faceUpCard or deck card, then what the player discarded), plus completed game details if game is over (winner plus relevent penalties).
+    - Description: Returns game history, a stringified list of tuples reporting whether player took draw_card or deck card, then what the player discarded).
+
+ - **get_game_score**
+    - Path: 'game/{urlsafe_game_key}/game'
+    - Method: GET
+    - Parameters: urlsafe_game_key
+    - Returns: ScoreForm associated with a particular game.
+    - Description: Returns game score information, including winner and each player's penalties.
+
+ - **get_user_games**
+    - Path: 'user/games'
+    - Method: GET
+    - Parameters: userName
+    - Returns: GameForms with 1 or more GameForm inside.
+    - Description: Returns the current state of all the User's active games, with active games listed first.
+    
+ - **get_user_rankings**
+    - Path: 'user/rankings'
+    - Method: GET
+    - Parameters: None
+    - Returns: UserForms
+    - Description: Rank all players that have played at least one game by their winning percentage and return.
+
+ - **get_high_scores**
+    - Path: 'scores/high_scores'
+    - Method: GET
+    - Parameters: number_of_results (optional)
+    - Returns: ScoreForms
+    - Description: Returns ScoreForms ordered by winner's lowest penalty. If number_of_results provided, that number of results is returned; otherwise, all scores returned in order.
 
 
 ##Models Included:
  - **User**
     - Stores unique userName and (optional) email address.
-    - Also keeps track of wins and total_played.
+    - Also keeps track of wins, total_games and win_rate.
     
  - **Game**
-    - Stores unique game states. Associated with User models via KeyProperties
-    userA and userB.
+    - Stores unique game states & history.
+    - Associated with User models via KeyProperties (player_one & player_two).
     
  - **Score**
-    - Records completed games. Associated with Users model via KeyProperty.
+    - Records completed games, including associated penalties.
+    - Associated with User model via KeyProperty (winner & loser).
+    - Associated with Game model via KeyProperty (game)
 
 
 ##Forms Included:
  - **UserForm**
-    - Representation of User. Includes winning percentage
+    - Representation of User. Includes win_rate
  - **UserForms**
     - Container for one or more UserForm.
  - **NewGameForm**
-    - Used to create a new game (userA, userB)
+    - Used to create a new game (player_one, player_two)
  - **GameForm**
-    - Representation of a Game's state (urlsafe_key, userA, userB, active - player whose turn it is, gameOver, winner).
+    - Representation of a Game's state (urlsafe_key, player_one, player_two, active - player whose turn it is, draw_card, mid_move - boolean, game_over - boolean).
  - **GameForms**
     - Container for one or more GameForm.
  - **HandForm**
-    - Representation of active player's hand (urlsafe_key, active, hand - of active player, faceUpCard - available to draw, instructions) 
+    - Representation of active player's hand (urlsafe_key, mid_move - boolean, active, hand - of active player, draw_card, instructions) 
  - **GameHistoryForm**
-    - Representation of Game with history, and if completed, winner and penalties (urlsafe_key, userA, userB, gameOver, winner, penaltyA, penaltyB, history - record of game moves)
- - **MakeMoveForm**
-    - Inbound make move form (userName, move).
+    - Representation of Game with history (urlsafe_key, player_one, player_two, game_over, history - record of game moves)
+ - **MoveForm**
+    - Inbound move form (user_name, move).
  - **ScoreForm**
-    - Representation of a completed game's Score (date, winner, loser).
+    - Representation of a completed game's Score (date, winner, loser, penalty_winner, penalty_loser).
  - **ScoreForms**
     - Multiple ScoreForm container.
  - **StringMessage**

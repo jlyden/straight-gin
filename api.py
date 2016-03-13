@@ -292,12 +292,10 @@ class StraightGinAPI(remote.Service):
             raise endpoints.NotFoundException(
                     'User with that name does not exist!')
         scores = user.all_scores()
-#        scores = Score.query(ndb.OR(Score.winner == user.key,
-#                                    Score.loser == user.key))
         return ScoreForms(items=[score.score_to_form() for score in scores])
 
     @endpoints.method(response_message=UserForms,
-                      path='user/ranking/win_rate',
+                      path='user/rankings',
                       name='get_user_rankings',
                       http_method='GET')
     def get_user_rankings(self, request):
