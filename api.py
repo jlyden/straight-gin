@@ -225,9 +225,9 @@ class StraightGinAPI(remote.Service):
                 game.mid_move = False
                 game.put()
                 return game.game_to_form()
-        # If game_over, return Score instead
+            # If game_over, return Score instead
             else:
-                score = Score.query().filter(Score.game == game.key)
+                score = Score.query(Score.game == game.key).get()
                 return score.score_to_form()
 
     @endpoints.method(request_message=GET_GAME_REQUEST,
@@ -240,6 +240,20 @@ class StraightGinAPI(remote.Service):
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
         if game:
             return game.history_to_form()
+        else:
+            raise endpoints.NotFoundException('Game not found!')
+
+    @endpoints.method(request_message=GET_GAME_REQUEST,
+                      response_message=ScoreForm,
+                      path='game/{urlsafe_game_key}/score',
+                      name='get_game_score',
+                      http_method='GET')
+    def get_game_score(self, request):
+        """ Return the ScoreForm for Score associated with a Game """
+        game = get_by_urlsafe(request.urlsafe_game_key, Game)
+        if game:
+            score = Score.query(Score.game == game.key).get()
+            return score.score_to_form()
         else:
             raise endpoints.NotFoundException('Game not found!')
 
@@ -290,19 +304,19 @@ class StraightGinAPI(remote.Service):
                       http_method='GET')
     def get_user_rankings(self, request):
         """ Return UserForms ranked by win_rate """
-        users = User.query().fetch()
-        users = users.order(user.win_rate)
+        q = User.query()
+#        users = q.order(User.win_rate)
         return UserForms(items=[user.user_to_form() for user in users])
 
     @endpoints.method(request_message=HIGH_SCORES_REQUEST,
-                      response_message=UserForms,
+                      response_message=ScoreForms,
                       path='scores/high_scores',
                       name='get_high_scores',
                       http_method='GET')
     def get_high_scores(self, request):
         """ Return ScoreForms ranked by lowest winner penalty """
-        scores = Score.query().fetch()
-#        users = q_users.order(User.avg_penalty)
+        q = Score.query()
+        scores = q.order(Score.penalty_winner)
         return ScoreForms(items=[score.score_to_form() for score in scores])
 
 api = endpoints.api_server([StraightGinAPI])

@@ -165,15 +165,15 @@ class Game(ndb.Model):
         # active player needs penalty of 0 to win
         else:
             if self.active == self.player_one:
-                if self.penalty_one == 0:
-                    score_game(self.player_one, penalty_one, penalty_two)
+                if penalty_one == 0:
+                    self.score_game(self.player_one, penalty_one, penalty_two)
                 else:
-                    score_game(self.player_two, penalty_two, penalty_one)
+                    self.score_game(self.player_two, penalty_two, penalty_one)
             else:
-                if self.penalty_two == 0:
-                    score_game(self.player_two, penalty_two, penalty_one)
+                if penalty_two == 0:
+                    self.score_game(self.player_two, penalty_two, penalty_one)
                 else:
-                    score_game(self.player_one, penalty_one, penalty_two)
+                    self.score_game(self.player_one, penalty_one, penalty_two)
 
         self.mid_move = False
         self.game_over = True

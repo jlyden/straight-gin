@@ -1,4 +1,4 @@
-ahRkZXZ-c3RyYWlnaHRnaW4tMTIzNHIRCxIER2FtZRiAgICAgND7CAw
+ahRkZXZ-c3RyYWlnaHRnaW4tMTIzNHIRCxIER2FtZRiAgICAgND7CQw
 
 TODO:
 - review Notes from end of Scalable Apps re: logging
@@ -22,7 +22,9 @@ https://cloud.google.com/appengine/articles/modeling http://stackoverflow.com/qu
 Working API methods, including throwing proper errors:
 cancelGame, createUser, endMove [double-check win], getGame, getGameHistory, getHand, getScores, getUserGames, getUserRankings, getUserScores, newGame, startMove [check end of Deck]
 
-create_user, get_game, get_game_history, 
+create_user, get_game, get_game_history, get_game_score, get_scores, get_high_scores, new_game, start_move, 
+
+Issue: get_user_rankings - probably need to move win_rate back into User or learn how to order by item in Form
 
 To Check:
 endMove at win
