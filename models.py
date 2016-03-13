@@ -127,7 +127,9 @@ class Game(ndb.Model):
             string_card = ' '.join(self.draw_card)
 
             # return proper instructions
-            if self.mid_move:
+            if self.game_over:
+                instructions = 'Sorry, game over! No more moves.'
+            elif self.mid_move:
                 instructions = 'Enter your discard. If you are ready to go \
                 out, also type OUT. Example: D-K OUT'
             else:
@@ -145,7 +147,7 @@ class Game(ndb.Model):
     def end_game(self, chosen=False):
         """
         End game and determine winner -
-        chosen: boolean representing if active player has chosen to go "OUT"
+        chosen: boolean representing if active player chose to go "OUT"
         """
         # check both players' hands
         penalty_one = test_hand(self.hand_one)
@@ -153,11 +155,12 @@ class Game(ndb.Model):
 
         # if game ended because no more cards to draw
         if not chosen:
+            # winner is player with lower penalty
             if penalty_one < penalty_two:
                 score_game(self.player_one, penalty_one, penalty_two)
             elif penalty_two < penalty_one:
                 score_game(self.player_two, penalty_two, penalty_one)
-            # tie goes to active player
+            # and penalty tie goes to active player
             else:
                 score_game(self.active, penalty_one, penalty_two)
 

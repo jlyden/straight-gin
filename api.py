@@ -116,7 +116,7 @@ class StraightGinAPI(remote.Service):
                       name='start_move',
                       http_method='PUT')
     def start_move(self, request):
-        """ Return mid_move state, unless game ends; then return Score """
+        """ Return mid_move game state """
         # authorization check before proceeding
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
         if not game:
@@ -164,11 +164,7 @@ class StraightGinAPI(remote.Service):
         if not game.game_over:
             game.mid_move = True
             game.put()
-            return game.hand_to_form()
-        # If game_over, return Score instead
-        else:
-            score = Score.query().filter(Score.game == game.key)
-            return score.score_to_form()
+        return game.hand_to_form()
 
     @endpoints.method(request_message=MOVE_REQUEST,
                       response_message=GameForm,
@@ -176,7 +172,7 @@ class StraightGinAPI(remote.Service):
                       name='end_move',
                       http_method='PUT')
     def end_move(self, request):
-        """ Return game state, unless game ends; then return Score """
+        """ Return game state """
         # authorization check before proceeding
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
         if not game:
@@ -224,11 +220,7 @@ class StraightGinAPI(remote.Service):
                     game.active = game.player_one
                 game.mid_move = False
                 game.put()
-                return game.game_to_form()
-            # If game_over, return Score instead
-            else:
-                score = Score.query(Score.game == game.key).get()
-                return score.score_to_form()
+            return game.game_to_form()
 
     @endpoints.method(request_message=GET_GAME_REQUEST,
                       response_message=GameHistoryForm,
