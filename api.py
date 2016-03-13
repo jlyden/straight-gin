@@ -124,8 +124,8 @@ class StraightGinAPI(remote.Service):
         if game.game_over:
             raise endpoints.NotFoundException('Game already over')
         if game.mid_move:
-            raise endpoints.BadRequestException("""Game is mid-move. \
-                        "Get Hand", select discard, then "End Move".""")
+            raise endpoints.BadRequestException('Game is mid-move.' \
+                        ' "get_hand", select discard, then "end_move".')
         user = User.query(User.name == request.user_name).get()
         if user.key != game.active:
             raise endpoints.BadRequestException('Not your turn!')
@@ -158,8 +158,8 @@ class StraightGinAPI(remote.Service):
                 game.end_game(self)
         # Handle bad input from user
         else:
-            raise endpoints.BadRequestException('Invalid move! Enter 1 to \
-                                take visible card or 2 to draw from pile.')
+            raise endpoints.BadRequestException('Invalid move! Enter 1 to' \
+                                ' take visible card or 2 to draw from pile.')
         # reset flag
         if not game.game_over:
             game.mid_move = True
@@ -180,9 +180,9 @@ class StraightGinAPI(remote.Service):
         if game.game_over:
             raise endpoints.NotFoundException('Game already over')
         if not game.mid_move:
-            raise endpoints.BadRequestException("""You must "Start Move" \
-                            before you end it! Try "Get Hand" to see active \
-                            hand and instructions for next move.""")
+            raise endpoints.BadRequestException('You must "start_move"' \
+                            ' before you end it! Try "get_hand" to see' \
+                            ' active hand and instructions for next move.')
         user = User.query(User.name == request.user_name).get()
         if user.key != game.active:
             raise endpoints.BadRequestException('Not your turn!')
@@ -195,9 +195,9 @@ class StraightGinAPI(remote.Service):
         move = request.move.split()
         # verify user input
         if not move[0] in hand:
-            raise endpoints.BadRequestException('That card is not in your \
-                                hand! Enter your discard. If you are ready \
-                                to go out, also type OUT. Example: D-K OUT')
+            raise endpoints.BadRequestException('That card is not in your' \
+                                ' hand! Enter your discard. If you are ready' \
+                                ' to go out, also type OUT. Example: D-K OUT')
         # remove discard from hand and set as draw_card
         else:
             hand.remove(move[0])
@@ -297,7 +297,7 @@ class StraightGinAPI(remote.Service):
     def get_user_rankings(self, request):
         """ Return UserForms ranked by win_rate """
         q = User.query()
-#        users = q.order(User.win_rate)
+        users = q.order(-User.win_rate)
         return UserForms(items=[user.user_to_form() for user in users])
 
     @endpoints.method(request_message=HIGH_SCORES_REQUEST,
@@ -308,7 +308,11 @@ class StraightGinAPI(remote.Service):
     def get_high_scores(self, request):
         """ Return ScoreForms ranked by lowest winner penalty """
         q = Score.query()
-        scores = q.order(Score.penalty_winner)
+        if request.number_of_results:
+            limit = int(request.number_of_results)
+            scores = q.order(Score.penalty_winner).fetch(limit=limit)
+        else:
+            scores = q.order(Score.penalty_winner)
         return ScoreForms(items=[score.score_to_form() for score in scores])
 
 api = endpoints.api_server([StraightGinAPI])

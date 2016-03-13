@@ -1,19 +1,5 @@
 #!/usr/bin/env python
-#
-# Copyright 2007 Google Inc.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#
+""" main.py - Contains handlers called by taskqueue and/or cronjobs. """
 import logging
 
 import webapp2
@@ -27,51 +13,65 @@ from models import User, Game
 
 class SendReminderEmail(webapp2.RequestHandler):
     def get(self):
-        """Send a reminder email to each User with an email who has
-        games in progress. Email body includes a count of active games and their
-        urlsafe keys
-        Called every hour using a cron job"""
+        """
+        Send a reminder email to each User with email address with games
+        in progress. Email body includes a count of active games and
+        their urlsafe keys
+        Called every day using a cron job
+        """
+        app_id = app_identity.get_application_id()
         users = User.query(User.email != None)
 
         for user in users:
-            games = Game.query(ndb.OR(Game.user_x == user.key,
-                                     Game.user_o == user.key)).\
-                filter(Game.game_over == False)
+            q = user.all_games()
+            games = q.filter(Game.game_over == False)
             if games.count() > 0:
-                subject = 'This is a reminder!'
-                body = 'Hello {}, you have {} games in progress. Their' \
-                       ' keys are: {}'.\
-                    format(user.name,
-                           games.count(),
-                           ', '.join(game.key.urlsafe() for game in games))
+                subject = 'Active game reminder!'
+                body = 'Hello {}, you have {} games in progress.' \
+                       ' Their keys are: {}'.\
+                       format(user.name,
+                              games.count(),
+                              ', '.join(game.key.urlsafe() for game in games))
                 logging.debug(body)
-                # This will send test emails, the arguments to send_mail are:
-                # from, to, subject, body
+                # Send emails
+                # Arguments to send_mail are: from, to, subject, body
                 mail.send_mail('noreply@{}.appspotmail.com'.
                                format(app_identity.get_application_id()),
                                user.email,
                                subject,
                                body)
 
-
 class SendMoveEmail(webapp2.RequestHandler):
-    def post(self):
-        """Send an email to a User that it is their turn"""
-        logging.debug('HEREERERER"')
-        user = get_by_urlsafe(self.request.get('user_key'), User)
-        game = get_by_urlsafe(self.request.get('game_key'), Game)
-        subject = 'It\'s your turn!'
-        body = '{}, It\'s your turn to play Tic Tac Toe. The game key is: {}'.\
-           format(user.name, game.key.urlsafe())
-        logging.debug(body)
-        mail.send_mail('noreply@{}.appspotmail.com'.
+    def get(self):
+        """
+        Send a reminder email to player (if email address on file) each time
+        the opponent in a game completes a move. Email body provides
+        urlsafe key, player's hand, visible draw_card and instructions.
+        Uses appEngine Push Queue
+        """
+        app_id = app_identity.get_application_id()
+        users = User.query(User.email != None)
+
+        for user in users:
+            q = user.all_games()
+            games = q.filter(Game.game_over == False)
+            if games.count() > 0:
+                subject = 'Active game reminder!'
+                body = 'Hello {}, you have {} games in progress.' \
+                       ' Their keys are: {}'.\
+                       format(user.name,
+                              games.count(),
+                              ', '.join(game.key.urlsafe() for game in games))
+                logging.debug(body)
+                # Send emails
+                # Arguments to send_mail are: from, to, subject, body
+                mail.send_mail('noreply@{}.appspotmail.com'.
                                format(app_identity.get_application_id()),
                                user.email,
                                subject,
                                body)
 
-
 app = webapp2.WSGIApplication([
     ('/crons/send_reminder', SendReminderEmail),
-    ('/tasks/send_move_email', SendMoveEmail),
+#    ('/tasks/send_move_email', SendMoveEmail),
 ], debug=True)

@@ -18,6 +18,7 @@ class User(ndb.Model):
     email = ndb.StringProperty(required=True)
     total_games = ndb.IntegerProperty(default=0)
     wins = ndb.IntegerProperty(default=0)
+    win_rate = ndb.FloatProperty(default=0.0)
 
     def user_to_form(self):
         """ Populate UserForm """
@@ -41,7 +42,7 @@ class User(ndb.Model):
 
     def calc_win_rate(self):
         """ Calculate win rate """
-        if total_games > 0:
+        if self.total_games > 0:
             win_rate = float(self.wins)/float(self.total_games)
         else:
             win_rate = 0.0
@@ -51,11 +52,13 @@ class User(ndb.Model):
         """ Add a win """
         self.wins += 1
         self.total_games += 1
+        self.win_rate = self.calc_win_rate()
         self.put()
 
     def add_loss(self):
         """ Add a loss """
         self.total_games += 1
+        self.win_rate = self.calc_win_rate()
         self.put()
 
 
@@ -130,11 +133,11 @@ class Game(ndb.Model):
             if self.game_over:
                 instructions = 'Sorry, game over! No more moves.'
             elif self.mid_move:
-                instructions = 'Enter your discard. If you are ready to go \
-                out, also type OUT. Example: D-K OUT'
+                instructions = 'Enter your discard. If you are ready to go' \
+                               ' out, also type OUT. Example: D-K OUT'
             else:
-                instructions = 'Enter 1 to take visible card or 2 to draw \
-                from pile.'
+                instructions = 'Enter 1 to take visible card or 2 to draw' \
+                               ' from pile.'
 
             form = HandForm(urlsafe_key=self.key.urlsafe(),
                             mid_move=self.mid_move,
