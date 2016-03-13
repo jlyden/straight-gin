@@ -260,9 +260,9 @@ class StraightGinAPI(remote.Service):
         if not user:
             raise endpoints.NotFoundException(
                     'User with that name does not exist!')
-        games = user.all_games()
-#        games = Game.query(ndb.OR(Game.player_one == user.key,
-#                                    Game.player_two == user.key))
+        # Get all games, then order with NOT game_over first
+        q = user.all_games()
+        games = q.order(Game.game_over)
         return GameForms(items=[game.game_to_form() for game in games])
 
     @endpoints.method(response_message=ScoreForms,
