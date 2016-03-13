@@ -266,7 +266,7 @@ class StraightGinAPI(remote.Service):
         if not user:
             raise endpoints.NotFoundException(
                     'User with that name does not exist!')
-        # Get all games, then order with NOT game_over first
+        # Get all games, then order with !game_over first
         q = user.all_games()
         games = q.order(Game.game_over)
         return GameForms(items=[game.game_to_form() for game in games])

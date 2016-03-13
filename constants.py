@@ -3,6 +3,8 @@
 #
 # constants for Straight_Gin_API
 
+# H = Hearts, D = Diamonds, C = Clubs, S = Spades
+# J = Jack, Q = Queen, K = King
 FULL_DECK = ['H-A', 'H-2', 'H-3', 'H-4', 'H-5', 'H-6', 'H-7',
              'H-8', 'H-9', 'H-10', 'H-J', 'H-Q', 'H-K',
              'D-A', 'D-2', 'D-3', 'D-4', 'D-5', 'D-6', 'D-7',
