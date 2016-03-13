@@ -12,7 +12,7 @@ from google.appengine.api import taskqueue
 from google.appengine.ext import ndb
 
 from models import User, Game, Score
-from models import UserForm, UserForms,NewGameForm, GameForm, GameForms, \
+from models import UserForm, UserForms, NewGameForm, GameForm, GameForms, \
     HandForm, GameHistoryForm, MoveForm, ScoreForm, ScoreForms, StringMessage
 from utils import get_by_urlsafe, deal_hand
 
@@ -24,10 +24,12 @@ HIGH_SCORES_REQUEST = endpoints.ResourceContainer(
 MOVE_REQUEST = endpoints.ResourceContainer(
     MoveForm,
     urlsafe_game_key=messages.StringField(1),)
-USER_GAME_REQUEST = endpoints.ResourceContainer(user_name=messages.StringField(1))
+USER_GAME_REQUEST = endpoints.ResourceContainer(
+    user_name=messages.StringField(1))
 USER_REQUEST = endpoints.ResourceContainer(
     user_name=messages.StringField(1),
     email=messages.StringField(2))
+
 
 @endpoints.api(name='gin', version='v1')
 class StraightGinAPI(remote.Service):
@@ -76,7 +78,7 @@ class StraightGinAPI(remote.Service):
         if not game:
             raise endpoints.NotFoundException('Game not found!')
         else:
-            if game.game_over == True:
+            if game.game_over:
                 raise endpoints.BadRequestException('Game already over!')
             else:
                 game.key.delete()
@@ -146,7 +148,7 @@ class StraightGinAPI(remote.Service):
         elif move == '2':
             hidden_card, deck = deal_hand(1, game.deck)
             # if there are still cards left in deck, play continues
-            if hidden_card != None:
+            if hidden_card is not None:
                 hand += hidden_card
                 text_move = 'took hidden card ' + ''.join(hidden_card)
                 game.history.append((user.name, text_move))
@@ -198,8 +200,8 @@ class StraightGinAPI(remote.Service):
         # verify user input
         if not move[0] in hand:
             raise endpoints.BadRequestException('That card is not in your \
-                                    hand! Enter your discard. If you are ready \
-                                    to go out, also type OUT. Example: D-K OUT')
+                                hand! Enter your discard. If you are ready \
+                                to go out, also type OUT. Example: D-K OUT')
         # remove discard from hand and set as draw_card
         else:
             hand.remove(move[0])
@@ -263,7 +265,8 @@ class StraightGinAPI(remote.Service):
                       http_method='GET')
     def get_scores(self, request):
         """ Return all Scores in database """
-        return ScoreForms(items=[score.score_to_form() for score in Score.query()])
+        return ScoreForms(items=[score.score_to_form()
+                          for score in Score.query()])
 
     @endpoints.method(request_message=USER_GAME_REQUEST,
                       response_message=ScoreForms,

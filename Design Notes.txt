@@ -1,6 +1,6 @@
 TODO:
 - review Notes from end of Scalable Apps re: logging
-
+- work on decorators
 
 https://github.com/udacity/FSND-P4-Design-A-Game/blob/master/Project-Description.md
 https://cloud.google.com/appengine/articles/modeling http://stackoverflow.com/questions/24392270/many-to-many-relationship-in-ndb

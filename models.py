@@ -11,7 +11,6 @@ from datetime import date
 from protorpc import messages
 from google.appengine.ext import ndb
 
-# - - - - Objects - User - - - - -
 
 class User(ndb.Model):
     """ User profile """
@@ -21,27 +20,27 @@ class User(ndb.Model):
     wins = ndb.IntegerProperty(default=0)
 
     def user_to_form(self):
-    """ Populate UserForm """
+        """ Populate UserForm """
         return UserForm(name=self.name,
                         email=self.email,
                         total_games=self.total_games,
                         win_rate=self.calc_win_rate())
 
     def all_games(self):
-    """
-    Return all user games - in progress and complete
-    Reference: http://stackoverflow.com/questions/24392270/many-to-many-relationship-in-ndb
-    """
-        return Game.query().filter(Game.player_one == self.key \
-                                   or Game.player_two == self.key)
+        """
+        Return all user games - in progress and complete
+        Reference: http://stackoverflow.com/questions/24392270/many-to-many-relationship-in-ndb
+        """
+        return Game.query().filter(Game.player_one == self.key or
+                                   Game.player_two == self.key)
 
     def all_scores(self):
-    """ Return all user scores - only from completed games """
-        return Score.query().filter(Score.winner == self.key \
-                                    or Score.loser == self.key)
+        """ Return all user scores - only from completed games """
+        return Score.query().filter(Score.winner == self.key or
+                                    Score.loser == self.key)
 
     def calc_win_rate(self):
-    """ Calculate win rate """
+        """ Calculate win rate """
         if total_games > 0:
             win_rate = float(self.wins)/float(self.total_games)
         else:
@@ -59,7 +58,6 @@ class User(ndb.Model):
         self.total_games += 1
         self.put()
 
-# - - - - Objects - Game - - - - -
 
 class Game(ndb.Model):
     """Game object"""
@@ -68,8 +66,8 @@ class Game(ndb.Model):
     deck = ndb.PickleProperty(required=True)
     hand_one = ndb.PickleProperty(required=True)
     hand_two = ndb.PickleProperty(required=True)
-    draw_card = ndb.PickleProperty(required=True) # Visible draw card
-    active = ndb.KeyProperty(required=True)       # User whose turn it is
+    draw_card = ndb.PickleProperty(required=True)   # Visible draw card
+    active = ndb.KeyProperty(required=True)         # User whose turn it is
     instructions = ndb.StringProperty()
     mid_move = ndb.BooleanProperty(required=True, default=False)
     game_over = ndb.BooleanProperty(required=True, default=False)
@@ -83,7 +81,7 @@ class Game(ndb.Model):
                     active=player_one)
 
         # Prepare deck, hands, draw_card
-        # Note that deck is transformed (and returned) with each hand/card dealt
+        # Note that deck is transformed and returned with each hand/card dealt
         deck = constants.FULL_DECK
         game.hand_one, deck = deal_hand(constants.HAND_SIZE, deck)
         game.hand_two, deck = deal_hand(constants.HAND_SIZE, deck)
@@ -130,9 +128,11 @@ class Game(ndb.Model):
 
             # return proper instructions
             if self.mid_move:
-                instructions = 'Enter your discard. If you are ready to go out, also type OUT. Example: D-K OUT'
+                instructions = 'Enter your discard. If you are ready to go \
+                                out, also type OUT. Example: D-K OUT'
             else:
-                instructions = 'Enter 1 to take visible card or 2 to draw from pile.'
+                instructions = 'Enter 1 to take visible card or 2 to draw \
+                                from pile.'
 
             form = HandForm(urlsafe_key=self.key.urlsafe(),
                             mid_move=self.mid_move,
@@ -180,7 +180,10 @@ class Game(ndb.Model):
 
     def score_game(self, winner, penalty_winner, penalty_loser):
         """Set up Score for Game"""
-        loser = self.player_two if winner == self.player_one else self.player_one
+        if winner == self.player_one:
+            loser = self.player_two
+        else:
+            loser = self.player_one
         # Add the game to the score 'board'
         score = Score(date=date.today(),
                       game=self.key,
@@ -204,14 +207,12 @@ class Game(ndb.Model):
         history = '; '.join(str(move) for move in history_list)
 
         form = GameHistoryForm(urlsafe_key=self.key.urlsafe(),
-                                player_one=self.player_one.get().name,
-                                player_two=self.player_two.get().name,
-                                game_over=self.game_over,
-                                history=history)
+                               player_one=self.player_one.get().name,
+                               player_two=self.player_two.get().name,
+                               game_over=self.game_over,
+                               history=history)
         return form
 
-
-# - - - - Objects - Score - - - - -
 
 class Score(ndb.Model):
     """Score object"""
@@ -230,8 +231,6 @@ class Score(ndb.Model):
                          penalty_loser=self.penalty_loser)
 
 
-# - - - - Forms - User - - - - -
-
 class UserForm(messages.Message):
     """User Form"""
     name = messages.StringField(1, required=True)
@@ -239,17 +238,17 @@ class UserForm(messages.Message):
     total_games = messages.IntegerField(3, required=True)
     win_rate = messages.FloatField(4)
 
+
 class UserForms(messages.Message):
     """Container for multiple User Forms"""
     items = messages.MessageField(UserForm, 1, repeated=True)
 
 
-# - - - - Forms - Game - - - - -
-
 class NewGameForm(messages.Message):
     """Used to create a new game"""
     player_one = messages.StringField(1, required=True)
     player_two = messages.StringField(2, required=True)
+
 
 class GameForm(messages.Message):
     """GameForm for outbound game state information"""
@@ -261,9 +260,11 @@ class GameForm(messages.Message):
     mid_move = messages.BooleanField(6, required=True)
     game_over = messages.BooleanField(7, required=True)
 
+
 class GameForms(messages.Message):
     """Container for multiple GameForm"""
     items = messages.MessageField(GameForm, 1, repeated=True)
+
 
 class HandForm(messages.Message):
     """HandForm for outbound game state information"""
@@ -274,6 +275,7 @@ class HandForm(messages.Message):
     draw_card = messages.StringField(5, required=True)
     instructions = messages.StringField(6, required=True)
 
+
 class GameHistoryForm(messages.Message):
     """GameHistoryForm for detailed game information"""
     urlsafe_key = messages.StringField(1, required=True)
@@ -282,13 +284,12 @@ class GameHistoryForm(messages.Message):
     game_over = messages.BooleanField(4, required=True)
     history = messages.StringField(5)
 
+
 class MoveForm(messages.Message):
     """Used to make a move in an existing game"""
     user_name = messages.StringField(1, required=True)
     move = messages.StringField(2, required=True)
 
-
-# - - - - Forms - Score - - - - -
 
 class ScoreForm(messages.Message):
     """ScoreForm for outbound Score information"""
@@ -297,6 +298,7 @@ class ScoreForm(messages.Message):
     loser = messages.StringField(3, required=True)
     penalty_winner = messages.IntegerField(4, required=True)
     penalty_loser = messages.IntegerField(5, required=True)
+
 
 class ScoreForms(messages.Message):
     """Return multiple ScoreForms"""
