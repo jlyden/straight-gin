@@ -103,7 +103,7 @@ class StraightGinAPI(remote.Service):
                       name='get_hand',
                       http_method='GET')
     def get_hand(self, request):
-        """ Return the hand of active player (whose turn it is) """
+        """ Return hand of active player (whose turn it is) """
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
         if not game:
             raise endpoints.NotFoundException('Game not found!')
@@ -274,7 +274,7 @@ class StraightGinAPI(remote.Service):
                       name='get_user_scores',
                       http_method='GET')
     def get_user_scores(self, request):
-        """Return all of an individual User's scores"""
+        """ Return all of an individual User's scores """
         user = User.query(User.name == request.user_name).get()
         if not user:
             raise endpoints.NotFoundException(
