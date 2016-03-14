@@ -179,8 +179,7 @@ class StraightGinAPI(remote.Service):
         if not game.game_over:
             game.mid_move = True
             game.put()
-        print type(game.hand_to_form())
-        return game.hand_to_form()
+        return game.hand_to_form("not_given")
 
     @endpoints.method(request_message=MOVE_REQUEST,
                       response_message=GameForm,
