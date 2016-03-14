@@ -3,8 +3,6 @@
 #
 # models for Straight_Gin_API
 
-# AFTER TESTING, change HAND_SIZE in constants.py
-
 import logging
 import constants
 from utils import deal_hand, test_hand
