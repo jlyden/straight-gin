@@ -81,7 +81,7 @@ Straight Gin is a variation of the Gin Rummy card game. In the version implement
     - Method: GET
     - Parameters: user_name
     - Returns: ScoreForms.
-    - Description: Returns all Scores recorded by the provided player (unordered). Raises NotFoundException if User does not exist.
+    - Description: Returns all Scores recorded by the provided player (ordered by lowest winner penalty first). Raises NotFoundException if User does not exist.
 
 
 ##Additional endpoints
@@ -111,7 +111,7 @@ Straight Gin is a variation of the Gin Rummy card game. In the version implement
     - Method: GET
     - Parameters: urlsafe_game_key
     - Returns: ScoreForm associated with a particular game.
-    - Description: Returns game score information, including winner and each player's penalties. Raises NotFoundException if game doesn't exist.
+    - Description: Returns game score information, including winner and each player's penalties. Raises NotFoundException if game doesn't exist and BadRequestException if game isn't over yet.
 
  - **get_user_games**
     - Path: 'user/games'

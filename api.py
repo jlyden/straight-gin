@@ -265,8 +265,12 @@ class StraightGinAPI(remote.Service):
         """ Return Score associated with a Game """
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
         if game:
-            score = Score.query(Score.game == game.key).get()
-            return score.score_to_form()
+            if game.game_over:
+                score = Score.query(Score.game == game.key).get()
+                return score.score_to_form()
+            else:
+                raise endpoints.BadRequestException('Score is only available'
+                                                    ' for complete games!')
         else:
             raise endpoints.NotFoundException('Game not found!')
 
@@ -306,7 +310,9 @@ class StraightGinAPI(remote.Service):
         if not user:
             raise endpoints.NotFoundException(
                     'User with that name does not exist!')
-        scores = user.all_scores()
+        # Get all scores, then order by lowest winner-penalty first
+        q = user.all_scores()
+        scores = q.order(Score.penalty_winner)
         return ScoreForms(items=[score.score_to_form() for score in scores])
 
     @endpoints.method(response_message=UserForms,

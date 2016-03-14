@@ -24,3 +24,13 @@ indexes:
   properties:
   - name: player_two
   - name: game_over
+
+- kind: Score
+  properties:
+  - name: loser
+  - name: penalty_winner
+
+- kind: Score
+  properties:
+  - name: winner
+  - name: penalty_winner
