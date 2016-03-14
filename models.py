@@ -54,12 +54,14 @@ class User(ndb.Model):
         self.total_games += 1
         self.win_rate = self.calc_win_rate()
         self.put()
+        return
 
     def add_loss(self):
         """ Add a loss """
         self.total_games += 1
         self.win_rate = self.calc_win_rate()
         self.put()
+        return
 
 
 class Game(ndb.Model):
@@ -114,38 +116,34 @@ class Game(ndb.Model):
 
     def hand_to_form(self):
         """ Return HandForm representation of active player's hand """
-        # If game is over, return history instead
-        if self.game_over:
-            return self.history_to_form()
+        # retrieve correct hand
+        if self.active == self.player_one:
+            hand = self.hand_one
         else:
-            # retrieve correct hand
-            if self.active == self.player_one:
-                hand = self.hand_one
-            else:
-                hand = self.hand_two
+            hand = self.hand_two
 
-            # convert hand (sorted) & draw_card to strings
-            sorted_hand = sorted(hand)
-            string_hand = ' '.join(str(card) for card in sorted_hand)
-            string_card = ' '.join(self.draw_card)
+        # convert hand (sorted) & draw_card to strings
+        sorted_hand = sorted(hand)
+        string_hand = ' '.join(str(card) for card in sorted_hand)
+        string_card = ' '.join(self.draw_card)
 
-            # return proper instructions
-            if self.game_over:
-                instructions = 'Sorry, game over! No more moves.'
-            elif self.mid_move:
-                instructions = 'Enter your discard. If you are ready to go' \
-                               ' out, also type OUT. Example: D-K OUT'
-            else:
-                instructions = 'Enter 1 to take visible card or 2 to draw' \
-                               ' from pile.'
+        # return proper instructions
+        if self.game_over:
+            instructions = 'Sorry, game over! No more moves.'
+        elif self.mid_move:
+            instructions = 'Enter your discard. If you are ready to go' \
+                           ' out, also type OUT. Example: D-K OUT'
+        else:
+            instructions = 'Enter 1 to take visible card or 2 to draw' \
+                           ' from pile.'
 
-            form = HandForm(urlsafe_key=self.key.urlsafe(),
-                            mid_move=self.mid_move,
-                            active=self.active.get().name,
-                            hand=string_hand,
-                            draw_card=string_card,
-                            instructions=instructions)
-            return form
+        form = HandForm(urlsafe_key=self.key.urlsafe(),
+                        mid_move=self.mid_move,
+                        active=self.active.get().name,
+                        hand=string_hand,
+                        draw_card=string_card,
+                        instructions=instructions)
+        return form
 
     def end_game(self, chosen=False):
         """
@@ -184,6 +182,7 @@ class Game(ndb.Model):
         self.mid_move = False
         self.game_over = True
         self.put()
+        return
 
     def score_game(self, winner, penalty_winner, penalty_loser):
         """ Set up Score for Game """
@@ -203,6 +202,7 @@ class Game(ndb.Model):
         # Update the user models
         winner.get().add_win()
         loser.get().add_loss()
+        return
 
     def history_to_form(self):
         """
@@ -213,12 +213,12 @@ class Game(ndb.Model):
         history_list = ['%s %s' % x for x in self.history]
         history = '; '.join(str(move) for move in history_list)
 
-        form = GameHistoryForm(urlsafe_key=self.key.urlsafe(),
+        history_form = GameHistoryForm(urlsafe_key=self.key.urlsafe(),
                                player_one=self.player_one.get().name,
                                player_two=self.player_two.get().name,
                                game_over=self.game_over,
                                history=history)
-        return form
+        return history_form
 
 
 class Score(ndb.Model):

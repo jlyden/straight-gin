@@ -128,6 +128,8 @@ class StraightGinAPI(remote.Service):
                 'Game is mid-move. "get_hand", select discard,'
                 ' then "end_move".')
         user = User.query(User.name == request.user_name).get()
+        if not user:
+            raise endpoints.NotFoundException('User not found')
         if user.key != game.active:
             raise endpoints.BadRequestException('Not your turn!')
 
@@ -166,6 +168,7 @@ class StraightGinAPI(remote.Service):
         if not game.game_over:
             game.mid_move = True
             game.put()
+        print type(game.hand_to_form())
         return game.hand_to_form()
 
     @endpoints.method(request_message=MOVE_REQUEST,
@@ -186,6 +189,8 @@ class StraightGinAPI(remote.Service):
                 'You must "start_move" before you end it! Try "get_hand"'
                 ' to see active hand and instructions for next move.')
         user = User.query(User.name == request.user_name).get()
+        if not user:
+            raise endpoints.NotFoundException('User not found')
         if user.key != game.active:
             raise endpoints.BadRequestException('Not your turn!')
 

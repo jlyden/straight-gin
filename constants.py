@@ -16,4 +16,4 @@ FULL_DECK = ['H-A', 'H-2', 'H-3', 'H-4', 'H-5', 'H-6', 'H-7',
 
 LIBRARY = {'A': '1', 'J': '11', 'Q': '12', 'K': '13'}
 
-HAND_SIZE = 24
+HAND_SIZE = 25
