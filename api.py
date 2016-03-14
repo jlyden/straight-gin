@@ -73,7 +73,7 @@ class StraightGinAPI(remote.Service):
                       name='cancel_game',
                       http_method='DELETE')
     def cancel_game(self, request):
-        """ Delete game-in-progress """
+        """ Delete Game-in-progress """
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
         if not game:
             raise endpoints.NotFoundException('Game not found!')
@@ -90,7 +90,7 @@ class StraightGinAPI(remote.Service):
                       name='get_game',
                       http_method='GET')
     def get_game(self, request):
-        """ Return the current Game state without revealing player hands """
+        """ Return current Game state without revealing player hands """
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
         if game:
             return game.game_to_form()
@@ -116,7 +116,7 @@ class StraightGinAPI(remote.Service):
                       name='start_move',
                       http_method='PUT')
     def start_move(self, request):
-        """ Return mid_move game state """
+        """ Return mid_move Game state """
         # authorization check before proceeding
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
         if not game:
@@ -177,7 +177,7 @@ class StraightGinAPI(remote.Service):
                       name='end_move',
                       http_method='PUT')
     def end_move(self, request):
-        """ Return game state """
+        """ Return Game state when player completes a move """
         # authorization check before proceeding
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
         if not game:
@@ -239,7 +239,7 @@ class StraightGinAPI(remote.Service):
                       name='get_game_history',
                       http_method='GET')
     def get_game_history(self, request):
-        """ Return history of a game """
+        """ Return history of a Game """
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
         if game:
             return game.history_to_form()
@@ -252,7 +252,7 @@ class StraightGinAPI(remote.Service):
                       name='get_game_score',
                       http_method='GET')
     def get_game_score(self, request):
-        """ Return the ScoreForm for Score associated with a Game """
+        """ Return Score associated with a Game """
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
         if game:
             score = Score.query(Score.game == game.key).get()
@@ -304,7 +304,7 @@ class StraightGinAPI(remote.Service):
                       name='get_user_rankings',
                       http_method='GET')
     def get_user_rankings(self, request):
-        """ Return UserForms ranked by win_rate """
+        """ Return Users ranked by win_rate """
         q = User.query()
         users = q.order(-User.win_rate)
         return UserForms(items=[user.user_to_form() for user in users])
@@ -315,7 +315,7 @@ class StraightGinAPI(remote.Service):
                       name='get_high_scores',
                       http_method='GET')
     def get_high_scores(self, request):
-        """ Return ScoreForms ranked by lowest winner penalty """
+        """ Return Scores ranked by lowest winner penalty """
         q = Score.query()
         if request.number_of_results:
             limit = int(request.number_of_results)

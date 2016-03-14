@@ -19,3 +19,8 @@ indexes:
   properties:
   - name: player_one
   - name: game_over
+
+- kind: Game
+  properties:
+  - name: player_two
+  - name: game_over
