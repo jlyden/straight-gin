@@ -3,6 +3,7 @@
 #
 # utility functions for Straight_Gin_API
 
+import logging
 import constants
 import endpoints
 import random

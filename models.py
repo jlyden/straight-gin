@@ -5,6 +5,7 @@
 
 # AFTER TESTING, change HAND_SIZE in constants.py
 
+import logging
 import constants
 from utils import deal_hand, test_hand
 from datetime import date
@@ -32,13 +33,13 @@ class User(ndb.Model):
         Return all user games - in progress and complete
         Reference: http://stackoverflow.com/questions/24392270/many-to-many-relationship-in-ndb
         """
-        return Game.query().filter(Game.player_one == self.key or
-                                   Game.player_two == self.key)
+        return Game.query(ndb.OR(Game.player_one == self.key,
+                                 Game.player_two == self.key))
 
     def all_scores(self):
         """ Return all user scores - only from completed games """
-        return Score.query().filter(Score.winner == self.key or
-                                    Score.loser == self.key)
+        return Score.query(ndb.OR(Score.winner == self.key,
+                                  Score.loser == self.key))
 
     def calc_win_rate(self):
         """ Calculate win rate """
