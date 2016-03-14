@@ -60,14 +60,14 @@ Straight Gin is a variation of the Gin Rummy card game. In the version implement
     - Method: PUT
     - Parameters: urlsafe_game_key, user_name, move
     - Returns: HandForm with mid-move game state.
-    - Description: Accepts a move (1 or 2) and returns the updated state of the game as displayed on "HandForm", including updated instructions. Active player must now select/input card to discard from his/her hand, and add "OUT" if ready to go out. Raises exceptions if game or user doesn't exist, game is mid-move already, game is already over, if it isn't that user's turn, or if user input is improper.
+    - Description: Accepts a move (1 or 2) and returns the updated state of the game as displayed on "HandForm", including updated instructions. Active player must now select/input card to discard from his/her hand, and add "OUT" if ready to go out. Raises exceptions if game or user doesn't exist, if game is mid-move already, if game is already over, if it isn't that user's turn, or if user input is improper.
 
  - **end_move**
     - Path: 'game/{urlsafe_game_key}/end-move'
     - Method: PUT
     - Parameters: urlsafe_game_key, user_name, move
-    - Returns: GameForm with new game state.
-    - Description: Accepts a move (discarded card and, optionally, "OUT") and returns the updated state of the game on "GameForm" - new active player and new draw_card (which was just discarded). Raises exceptions if game or user doesn't exist, game is NOT mid-move, game is already over, if it isn't that user's turn, or if user tries to discard a card which doesn't exist in user's hand.
+    - Returns: GameForm with game state after completion of move.
+    - Description: Accepts a move (discarded card and, optionally, "OUT") and returns the updated state of the game on "GameForm" - new active player and new draw_card (which was just discarded). Raises exceptions if game or user doesn't exist, if game is NOT mid-move, if game is already over, if it isn't that user's turn, or if user tries to discard a card which doesn't exist in user's hand.
 
  - **get_scores**
     - Path: 'scores'
@@ -97,7 +97,7 @@ Straight Gin is a variation of the Gin Rummy card game. In the version implement
     - Method: GET
     - Parameters: urlsafe_game_key
     - Returns: HandForm with active player's hand and game state information
-    - Description: Returns hand of player by user_name; if no user_name is provided, returns active player's hand. Also gives current draw_card and instructions for active player (whether pre-start_move or pre-end_move). Raises NotFoundException if game doesn't exist.
+    - Description: Returns hand of player by user_name; if no user_name is provided, returns active player's hand. Also gives current draw_card and instructions for active player. Raises NotFoundException if game doesn't exist.
 
  - **get_game_history**
     - Path: 'game/{urlsafe_game_key}/history'
