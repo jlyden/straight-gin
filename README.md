@@ -32,7 +32,7 @@ Straight Gin is a variation of Gin Rummy. In the version implemented in this API
 
 ## Testing Suggestions:
 - You can easily change how many cards are dealt in a hand in constants.py. Big Hand = short game (but few players going "out" by choice).
-- After "new_game", player_one must run "get_hand" to see cards in hand before running "start_move", so that player_one can make informed decision about taking visible draw_card ("1") or hidden deck card ("2"). Similarly, when player_two is making his/her first move of game, player_two should run "get_hand." This is cumbersome, but necessary so that each player's hand remains private.
+- "new_game" and "end_move" report GAME status, not hand status (so that each player's hand remains private). Especially at the beginning of a game, each player should run "get_hand" to see cards in hand before running "start_move", so that player_one can make informed decision about taking visible draw_card ("1") or hidden deck card ("2").
 
 ##Endpoints Included:
  - **create_user**
@@ -98,7 +98,7 @@ Straight Gin is a variation of Gin Rummy. In the version implemented in this API
     - Method: GET
     - Parameters: urlsafe_game_key
     - Returns: HandForm with active player's hand and game state information
-    - Description: Returns the active player's hand, plus current draw_card and instructions to start_move - player enters 1 to take draw_card or 2 to take hidden card from deck
+    - Description: Returns hand of player by user_name; if no user_name is provided, returns active player's hand. Also gives current draw_card and instructions for active player (whether pre-start_move or pre-end_move)
 
  - **get_game_history**
     - Path: 'game/{urlsafe_game_key}/history'
