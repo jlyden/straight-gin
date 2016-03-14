@@ -19,6 +19,9 @@ from utils import get_by_urlsafe, deal_hand
 NEW_GAME_REQUEST = endpoints.ResourceContainer(NewGameForm)
 GET_GAME_REQUEST = endpoints.ResourceContainer(
     urlsafe_game_key=messages.StringField(1))
+GET_HAND_REQUEST = endpoints.ResourceContainer(
+    urlsafe_game_key=messages.StringField(1),
+    user_name=messages.StringField(2, required=False))
 HIGH_SCORES_REQUEST = endpoints.ResourceContainer(
     number_of_results=messages.StringField(1, required=False))
 MOVE_REQUEST = endpoints.ResourceContainer(
@@ -97,18 +100,26 @@ class StraightGinAPI(remote.Service):
         else:
             raise endpoints.NotFoundException('Game not found!')
 
-    @endpoints.method(request_message=GET_GAME_REQUEST,
+    @endpoints.method(request_message=GET_HAND_REQUEST,
                       response_message=HandForm,
                       path='game/{urlsafe_game_key}/hand',
                       name='get_hand',
                       http_method='GET')
     def get_hand(self, request):
-        """ Return hand of active player (whose turn it is) """
+        """ Return hand of player by user_name;
+        if no user_name, return active player's hand """
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
         if not game:
             raise endpoints.NotFoundException('Game not found!')
+
+        # if user specified in request, return that player's hand
+        user = User.query(User.name == request.user_name).get()
+        if user:
+            return game.hand_to_form(user.name)
+        # otherwise, return active player's hand (whose turn it is)
         else:
-            return game.hand_to_form()
+            return game.hand_to_form("not_given")
+
 
     @endpoints.method(request_message=MOVE_REQUEST,
                       response_message=HandForm,
@@ -266,7 +277,7 @@ class StraightGinAPI(remote.Service):
                       name='get_user_games',
                       http_method='GET')
     def get_user_games(self, request):
-        """ Return all of an individual User's games """
+        """ Return all of an individual User's games - in progress and complete """
         user = User.query(User.name == request.user_name).get()
         if not user:
             raise endpoints.NotFoundException(

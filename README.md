@@ -5,13 +5,13 @@
 Back-end for Straight Gin game with modifications described in Game Description below. Built for Google AppEngine - platform agnostic with support for variety of front-end clients.
 
 ##Game Description:
-Straight Gin is a variation of Gin Rummy. In the version implemented in this API, two players oppose each other in a single round. Players are dealt 10 cards each (but size of hand can be easily modified for a new game), and take turns drawing new cards trying to shape their hands into acceptable runs and sets, holding all cards in their hands until the end. When all cards in hand have been sorted into a run or set, a player can attempt to go "out." The first player to successfully go out wins. If a player attempts to go out, but the hand fails (not all cards belonging to a run or set), the opponent automatically wins. If neither player can go "out" before the deck runs out of cards to draw, whoever has the lowest penalty (cards NOT sorted into runs or sets) in their hand wins.  Basic Gin Rummy instructions are available [here](https://en.wikipedia.org/wiki/Gin_rummy). Note that Aces (A) are LOW in Straight Gin (i.e. A = 1, never 14)
+Straight Gin is a variation of Gin Rummy. In the version implemented in this API, two players oppose each other in a single round. Players are dealt 10 cards each (but size of hand can be easily modified for a new game), and take turns drawing new cards trying to shape their hands into acceptable runs and sets, holding all cards in their hands until the end. When all cards in hand have been sorted into a run or set, a player can attempt to go "out." The first player to successfully go out wins. If a player attempts to go out, but the hand fails (not all cards belonging to a run or set), the opponent automatically wins. If neither player can go "out" before the deck runs out of cards to draw, whoever has the lowest penalty (cards NOT sorted into runs or sets) in their hand wins. Note that Aces (A) are LOW in Straight Gin (i.e. A = 1, never 14). Basic Gin Rummy instructions are available [here](https://en.wikipedia.org/wiki/Gin_rummy).
 
 ## Set-Up Instructions:
-1. Download zip file and extract game files (see Files Included). 
+1. Download zip file and extract game files (see Files Included).
 2. Update the value of application in app.yaml to the app ID you have registered in the App Engine admin console.
 3. Set up and run the app in Google App Engine Launcher.
-4. Test API using localhost:8080/_ah/api/explorer (or whatever port # your localhost has available) 
+4. Test API using localhost:8080/_ah/api/explorer (or whatever port # your localhost has available)
 
 ##Files Included:
  - api.py: Contains endpoints and game play logic.
@@ -29,9 +29,10 @@ Straight Gin is a variation of Gin Rummy. In the version implemented in this API
     - clean_hand: used by test_hand
     - group_consecutives: used by test_hand
     - check_sets: used by test_hand
-    
-## Testing Recommendation:
-You can easily change how many cards are dealt in a hand in  constants.py. Big Hand = short game (but few players going "out" by choice).
+
+## Testing Suggestions:
+- You can easily change how many cards are dealt in a hand in constants.py. Big Hand = short game (but few players going "out" by choice).
+- After "new_game", player_one must run "get_hand" to see cards in hand before running "start_move", so that player_one can make informed decision about taking visible draw_card ("1") or hidden deck card ("2"). Similarly, when player_two is making his/her first move of game, player_two should run "get_hand." This is cumbersome, but necessary so that each player's hand remains private.
 
 ##Endpoints Included:
  - **create_user**
@@ -40,7 +41,7 @@ You can easily change how many cards are dealt in a hand in  constants.py. Big H
     - Parameters: user_name
     - Returns: Message confirming creation of the User.
     - Description: Creates User with unique user_name. Raises  ConflictException if User with user_name already exists.
-    
+
  - **new_game**
     - Path: 'game'
     - Method: POST
@@ -54,33 +55,33 @@ You can easily change how many cards are dealt in a hand in  constants.py. Big H
     - Parameters: urlsafe_game_key
     - Returns: GameForm with current neutral game state (no user hand displayed)
     - Description: Returns the current state of a game, including active player and faceUpCard, but not active player's hand (in case opponent is looking)
-    
+
  - **start_move**
     - Path: 'game/{urlsafe_game_key}/start-move'
     - Method: PUT
     - Parameters: urlsafe_game_key, user_name, move
     - Returns: HandForm with mid-move game state.
     - Description: Accepts a move (1 or 2) and returns the updated state of the game as displayed on "HandForm", including updated instructions. Active player must now select/input card to discard from his/her hand, and add "OUT" if ready to go out.
-    
+
  - **end_move**
     - Path: 'game/{urlsafe_game_key}/end-move'
     - Method: PUT
     - Parameters: urlsafe_game_key, user_name, move
     - Returns: GameForm with new game state.
     - Description: Accepts a move (discarded card and, optionally, "OUT") and returns the updated state of the game on "GameForm" - new active player and new draw_card (which was just discarded).
-    
+
  - **get_scores**
     - Path: 'scores'
     - Method: GET
     - Parameters: None
     - Returns: ScoreForms.
     - Description: Returns all Scores in the database (unordered).
-    
+
  - **get_user_scores**
     - Path: 'scores/user/{user_name}'
     - Method: GET
     - Parameters: user_name
-    - Returns: ScoreForms. 
+    - Returns: ScoreForms.
     - Description: Returns all Scores recorded by the provided player (unordered). Raises NotFoundException if User does not exist.
 
 
@@ -119,7 +120,7 @@ You can easily change how many cards are dealt in a hand in  constants.py. Big H
     - Parameters: userName
     - Returns: GameForms with 1 or more GameForm inside.
     - Description: Returns the current state of all the User's active games, with active games listed first.
-    
+
  - **get_user_rankings**
     - Path: 'user/rankings'
     - Method: GET
@@ -139,11 +140,11 @@ You can easily change how many cards are dealt in a hand in  constants.py. Big H
  - **User**
     - Stores unique userName and (optional) email address.
     - Also keeps track of wins, total_games and win_rate.
-    
+
  - **Game**
     - Stores unique game states & history.
     - Associated with User models via KeyProperties (player_one & player_two).
-    
+
  - **Score**
     - Records completed games, including associated penalties.
     - Associated with User model via KeyProperty (winner & loser).
@@ -162,7 +163,7 @@ You can easily change how many cards are dealt in a hand in  constants.py. Big H
  - **GameForms**
     - Container for one or more GameForm.
  - **HandForm**
-    - Representation of active player's hand (urlsafe_key, mid_move - boolean, active, hand - of active player, draw_card, instructions) 
+    - Representation of active player's hand (urlsafe_key, mid_move - boolean, active, hand - of active player, draw_card, instructions)
  - **GameHistoryForm**
     - Representation of Game with history (urlsafe_key, player_one, player_two, game_over, history - record of game moves)
  - **MoveForm**

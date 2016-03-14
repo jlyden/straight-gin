@@ -113,13 +113,18 @@ class Game(ndb.Model):
                         game_over=self.game_over)
         return form
 
-    def hand_to_form(self):
-        """ Return HandForm representation of active player's hand """
+    def hand_to_form(self, player):
+        """ Return HandForm representation of player's hand """
         # retrieve correct hand
-        if self.active == self.player_one:
+        if player == self.player_one.get().name:
             hand = self.hand_one
-        else:
+        elif player == self.player_two.get().name:
             hand = self.hand_two
+        elif player == "not_given":
+            if self.active == self.player_one:
+                hand = self.hand_one
+            else:
+                hand = self.hand_two
 
         # convert hand (sorted) & draw_card to strings
         sorted_hand = sorted(hand)
