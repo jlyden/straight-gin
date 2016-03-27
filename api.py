@@ -14,7 +14,7 @@ from google.appengine.ext import ndb
 from models import User, Game, Score
 from models import UserForm, UserForms, NewGameForm, GameForm, GameForms, \
     HandForm, GameHistoryForm, MoveForm, ScoreForm, ScoreForms, StringMessage
-from utils import get_by_urlsafe, deal_hand, pre_move_verification
+from utils import get_by_urlsafe, deal_hand, pre_move_verification, check_game
 
 NEW_GAME_REQUEST = endpoints.ResourceContainer(NewGameForm)
 GET_GAME_REQUEST = endpoints.ResourceContainer(
@@ -78,9 +78,7 @@ class StraightGinAPI(remote.Service):
     def cancel_game(self, request):
         """ Delete Game-in-progress """
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
-        if not game:
-            raise endpoints.NotFoundException('Game not found!')
-        else:
+        if check_game(game):
             if game.game_over:
                 raise endpoints.BadRequestException('Game already over!')
             else:
@@ -95,10 +93,8 @@ class StraightGinAPI(remote.Service):
     def get_game(self, request):
         """ Return current Game state without revealing player hands """
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
-        if game:
+        if check_game(game):
             return game.game_to_form()
-        else:
-            raise endpoints.NotFoundException('Game not found!')
 
     @endpoints.method(request_message=GET_HAND_REQUEST,
                       response_message=HandForm,
@@ -109,16 +105,14 @@ class StraightGinAPI(remote.Service):
         """ Return hand of player by user_name;
         if no user_name, return active player's hand """
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
-        if not game:
-            raise endpoints.NotFoundException('Game not found!')
-
-        # if user specified in request, return that player's hand
-        user = User.query(User.name == request.user_name).get()
-        if user:
-            return game.hand_to_form(user.name)
-        # otherwise, return active player's hand (whose turn it is)
-        else:
-            return game.hand_to_form("not_given")
+        if check_game(game):
+            # if user specified in request, return that player's hand
+            user = User.query(User.name == request.user_name).get()
+            if user:
+                return game.hand_to_form(user.name)
+            # otherwise, return active player's hand (whose turn it is)
+            else:
+                return game.hand_to_form("not_given")
 
 
     @endpoints.method(request_message=MOVE_REQUEST,
@@ -235,10 +229,8 @@ class StraightGinAPI(remote.Service):
     def get_game_history(self, request):
         """ Return history of a Game """
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
-        if game:
+        if check_game(game):
             return game.history_to_form()
-        else:
-            raise endpoints.NotFoundException('Game not found!')
 
     @endpoints.method(request_message=GET_GAME_REQUEST,
                       response_message=ScoreForm,
@@ -248,15 +240,13 @@ class StraightGinAPI(remote.Service):
     def get_game_score(self, request):
         """ Return Score associated with a Game """
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
-        if game:
+        if check_game(game):
             if game.game_over:
                 score = Score.query(Score.game == game.key).get()
                 return score.score_to_form()
             else:
                 raise endpoints.BadRequestException('Score is only available'
                                                     ' for complete games!')
-        else:
-            raise endpoints.NotFoundException('Game not found!')
 
     @endpoints.method(request_message=USER_GAME_REQUEST,
                       response_message=GameForms,

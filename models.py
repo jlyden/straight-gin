@@ -110,7 +110,7 @@ class Game(ndb.Model):
                         draw_card=string_card,
                         mid_move=self.mid_move,
                         game_over=self.game_over)
-        if not self.game_over:
+        if not self`.game_over:
             form.active_player=self.active_player.get().name
         return form
 
