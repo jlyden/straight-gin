@@ -3,9 +3,6 @@
 #
 # models for Straight_Gin_API
 
-# issue with acive_player when game is over -
-# perhaps because game ended before I changed that variable!
-
 import logging
 import constants
 from utils import deal_hand, test_hand

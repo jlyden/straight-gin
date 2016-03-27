@@ -224,7 +224,7 @@ def check_sets(leftovers, long_runs):
 
 def pre_move_verification(game, user):
     """
-    Return true if pass all verifications
+    Return true if pass all verifications: is game over, is this correct user.
     """
     if check_game(game):
         if  game.game_over:
@@ -236,7 +236,7 @@ def pre_move_verification(game, user):
         else:
             return True
 
-def check_game(game):
+def game_exists(game):
     if not game:
         raise endpoints.NotFoundException('Game not found')
     else:

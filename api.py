@@ -14,7 +14,7 @@ from google.appengine.ext import ndb
 from models import User, Game, Score
 from models import UserForm, UserForms, NewGameForm, GameForm, GameForms, \
     HandForm, GameHistoryForm, MoveForm, ScoreForm, ScoreForms, StringMessage
-from utils import get_by_urlsafe, deal_hand, pre_move_verification, check_game
+from utils import get_by_urlsafe, deal_hand, pre_move_verification, game_exists
 
 NEW_GAME_REQUEST = endpoints.ResourceContainer(NewGameForm)
 GET_GAME_REQUEST = endpoints.ResourceContainer(
@@ -78,7 +78,7 @@ class StraightGinAPI(remote.Service):
     def cancel_game(self, request):
         """ Delete Game-in-progress """
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
-        if check_game(game):
+        if game_exists(game):
             if game.game_over:
                 raise endpoints.BadRequestException('Game already over!')
             else:
@@ -93,7 +93,7 @@ class StraightGinAPI(remote.Service):
     def get_game(self, request):
         """ Return current Game state without revealing player hands """
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
-        if check_game(game):
+        if game_exists(game):
             return game.game_to_form()
 
     @endpoints.method(request_message=GET_HAND_REQUEST,
@@ -105,7 +105,7 @@ class StraightGinAPI(remote.Service):
         """ Return hand of player by user_name;
         if no user_name, return active player's hand """
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
-        if check_game(game):
+        if game_exists(game):
             # if user specified in request, return that player's hand
             user = User.query(User.name == request.user_name).get()
             if user:
@@ -124,48 +124,48 @@ class StraightGinAPI(remote.Service):
         """ Return mid_move Game state """
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
         user = User.query(User.name == request.user_name).get()
-        if pre_move_verification(game, user):
-            if game.mid_move:
-                raise endpoints.BadRequestException(
-                    'Game is mid-move. "get_hand", select discard,'
-                    ' then "end_move".')
+        pre_move_verification(game, user)
+        if game.mid_move:
+            raise endpoints.BadRequestException(
+                'Game is mid-move. "get_hand", select discard,'
+                ' then "end_move".')
 
-            # get hand of current player
-            if game.active_player == game.player_one:
-                hand = game.hand_one
-            else:
-                hand = game.hand_two
-            # add requested card to player's hand & update deck (if needed)
-            move = request.move.strip()
-            text_move = ''
-            # if player takes visible draw_card, deck isn't affected
-            if move == '1':
-                hand += game.draw_card
-                text_move = 'took visible card ' + ''.join(game.draw_card)
+        # get hand of current player
+        if game.active_player == game.player_one:
+            hand = game.hand_one
+        else:
+            hand = game.hand_two
+        # add requested card to player's hand & update deck (if needed)
+        move = request.move.strip()
+        text_move = ''
+        # if player takes visible draw_card, deck isn't affected
+        if move == '1':
+            hand += game.draw_card
+            text_move = 'took visible card ' + ''.join(game.draw_card)
+            game.history.append((user.name, text_move))
+            game.draw_card = ['']
+        # if player takes hidden card from deck, draw_card isn't affected
+        elif move == '2':
+            hidden_card, deck = deal_hand(1, game.deck)
+            # if there are still cards left in deck, play continues
+            if hidden_card is not None:
+                hand += hidden_card
+                text_move = 'took hidden card ' + ''.join(hidden_card)
                 game.history.append((user.name, text_move))
-                game.draw_card = ['']
-            # if player takes hidden card from deck, draw_card isn't affected
-            elif move == '2':
-                hidden_card, deck = deal_hand(1, game.deck)
-                # if there are still cards left in deck, play continues
-                if hidden_card is not None:
-                    hand += hidden_card
-                    text_move = 'took hidden card ' + ''.join(hidden_card)
-                    game.history.append((user.name, text_move))
-                    game.deck = deck
-                # but if out of cards, game automatically ends
-                else:
-                    game.end_game(self)
-            # Handle bad input from user
+                game.deck = deck
+            # but if out of cards, game automatically ends
             else:
-                raise endpoints.BadRequestException(
-                    'Invalid move! Enter 1 to take visible card'
-                    ' or 2 to draw from pile.')
-            # reset flag
-            if not game.game_over:
-                game.mid_move = True
-                game.put()
-            return game.hand_to_form("not_given")
+                game.end_game(self)
+        # Handle bad input from user
+        else:
+            raise endpoints.BadRequestException(
+                'Invalid move! Enter 1 to take visible card'
+                ' or 2 to draw from pile.')
+        # reset flag
+        if not game.game_over:
+            game.mid_move = True
+            game.put()
+        return game.hand_to_form("not_given")
 
     @endpoints.method(request_message=MOVE_REQUEST,
                       response_message=GameForm,
@@ -229,7 +229,7 @@ class StraightGinAPI(remote.Service):
     def get_game_history(self, request):
         """ Return history of a Game """
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
-        if check_game(game):
+        if game_exists(game):
             return game.history_to_form()
 
     @endpoints.method(request_message=GET_GAME_REQUEST,
@@ -240,7 +240,7 @@ class StraightGinAPI(remote.Service):
     def get_game_score(self, request):
         """ Return Score associated with a Game """
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
-        if check_game(game):
+        if game_exists(game):
             if game.game_over:
                 score = Score.query(Score.game == game.key).get()
                 return score.score_to_form()
