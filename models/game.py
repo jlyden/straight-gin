@@ -7,6 +7,7 @@ import logging
 import constants
 from utils import deal_hand, test_hand
 from datetime import date
+from score import Score, ScoreForm, ScoreForms
 from protorpc import messages
 from google.appengine.ext import ndb
 

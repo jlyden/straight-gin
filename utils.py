@@ -226,7 +226,7 @@ def pre_move_verification(game, user):
     """
     Return true if pass all verifications: is game over, is this correct user.
     """
-    if check_game(game):
+    if game_exists(game):
         if  game.game_over:
             raise endpoints.NotFoundException('Game already over')
         elif not user:

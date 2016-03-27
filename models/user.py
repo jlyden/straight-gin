@@ -4,6 +4,7 @@
 # User model and forms for Straight_Gin_API
 
 import logging
+from score import Score, ScoreForm, ScoreForms
 from protorpc import messages
 from google.appengine.ext import ndb
 

@@ -3,6 +3,7 @@
 #
 # models/__init__.py for Straight_Gin_API
 
-from .user import User
-from .game import Game
-from .score import Score
+from .user import User, UserForm, UserForms, StringMessage
+from .game import Game, NewGameForm, GameForm, GameForms, GameHistoryForm, \
+    HandForm, MoveForm
+from .score import Score, ScoreForm, ScoreForms
