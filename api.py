@@ -137,7 +137,7 @@ class StraightGinAPI(remote.Service):
                     ' then "end_move".')
 
             # get hand of current player
-            if game.active == game.player_one:
+            if game.active_player == game.player_one:
                 hand = game.hand_one
             else:
                 hand = game.hand_two
@@ -186,10 +186,10 @@ class StraightGinAPI(remote.Service):
         if not game.mid_move:
             raise endpoints.BadRequestException(
                 'You must "start_move" before you end it! Try "get_hand"'
-                ' to see active hand and instructions for next move.')
+                ' to see active_player hand and instructions for next move.')
 
         # get hand of current player
-        if game.active == game.player_one:
+        if game.active_player == game.player_one:
             hand = game.hand_one
         else:
             hand = game.hand_two
@@ -215,15 +215,15 @@ class StraightGinAPI(remote.Service):
 
             # reset flags
             if not game.game_over:
-                if game.active == game.player_one:
-                    game.active = game.player_two
-                elif game.active == game.player_two:
-                    game.active = game.player_one
+                if game.active_player == game.player_one:
+                    game.active_player = game.player_two
+                elif game.active_player == game.player_two:
+                    game.active_player = game.player_one
                 game.mid_move = False
                 game.put()
                 # send e-mail reminder
                 taskqueue.add(url='/tasks/send_move_email',
-                              params={'user_key': game.active.urlsafe(),
+                              params={'user_key': game.active_player.urlsafe(),
                                       'game_key': game.key.urlsafe()})
             return game.game_to_form()
 

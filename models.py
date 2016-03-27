@@ -71,7 +71,7 @@ class Game(ndb.Model):
     hand_one = ndb.PickleProperty(required=True)
     hand_two = ndb.PickleProperty(required=True)
     draw_card = ndb.PickleProperty(required=True)   # Visible draw card
-    active = ndb.KeyProperty(required=True)         # User whose turn it is
+    active_player = ndb.KeyProperty(required=True)  # User whose turn it is
     instructions = ndb.StringProperty()
     mid_move = ndb.BooleanProperty(required=True, default=False)
     game_over = ndb.BooleanProperty(required=True, default=False)
@@ -82,7 +82,7 @@ class Game(ndb.Model):
         """ Return a new game """
         game = Game(player_one=player_one,
                     player_two=player_two,
-                    active=player_one)
+                    active_player=player_one)
 
         # Prepare deck, hands, draw_card
         # Note that deck is transformed and returned with each hand/card dealt
@@ -107,7 +107,7 @@ class Game(ndb.Model):
         form = GameForm(urlsafe_key=self.key.urlsafe(),
                         player_one=self.player_one.get().name,
                         player_two=self.player_two.get().name,
-                        active=self.active.get().name,
+                        active_player=self.active_player.get().name,
                         draw_card=string_card,
                         mid_move=self.mid_move,
                         game_over=self.game_over)
@@ -121,7 +121,7 @@ class Game(ndb.Model):
         elif player == self.player_two.get().name:
             hand = self.hand_two
         elif player == "not_given":
-            if self.active == self.player_one:
+            if self.active_player == self.player_one:
                 hand = self.hand_one
             else:
                 hand = self.hand_two
@@ -143,7 +143,7 @@ class Game(ndb.Model):
 
         form = HandForm(urlsafe_key=self.key.urlsafe(),
                         mid_move=self.mid_move,
-                        active=self.active.get().name,
+                        active_player=self.active_player.get().name,
                         hand=string_hand,
                         draw_card=string_card,
                         instructions=instructions)
@@ -167,12 +167,12 @@ class Game(ndb.Model):
                 score_game(self.player_two, penalty_two, penalty_one)
             # and penalty tie goes to active player
             else:
-                score_game(self.active, penalty_one, penalty_two)
+                score_game(self.active_player, penalty_one, penalty_two)
 
         # if game ended because active player signaled "OUT"
         # active player needs penalty of 0 to win
         else:
-            if self.active == self.player_one:
+            if self.active_player == self.player_one:
                 if penalty_one == 0:
                     self.score_game(self.player_one, penalty_one, penalty_two)
                 else:
@@ -266,7 +266,7 @@ class GameForm(messages.Message):
     urlsafe_key = messages.StringField(1, required=True)
     player_one = messages.StringField(2, required=True)
     player_two = messages.StringField(3, required=True)
-    active = messages.StringField(4, required=True)
+    active_player = messages.StringField(4, required=True)
     draw_card = messages.StringField(5, required=True)
     mid_move = messages.BooleanField(6, required=True)
     game_over = messages.BooleanField(7, required=True)
@@ -281,7 +281,7 @@ class HandForm(messages.Message):
     """ HandForm for outbound hand state information """
     urlsafe_key = messages.StringField(1, required=True)
     mid_move = messages.BooleanField(2, required=True)
-    active = messages.StringField(3, required=True)
+    active_player = messages.StringField(3, required=True)
     hand = messages.StringField(4, required=True)
     draw_card = messages.StringField(5, required=True)
     instructions = messages.StringField(6, required=True)

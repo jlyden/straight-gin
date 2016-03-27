@@ -232,7 +232,7 @@ def pre_move_verification(game, user):
         raise endpoints.NotFoundException('Game already over')
     elif not user:
         raise endpoints.NotFoundException('User not found')
-    elif user.key != game.active:
+    elif user.key != game.active_player:
         raise endpoints.BadRequestException('Not your turn!')
     else:
         return True

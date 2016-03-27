@@ -15,7 +15,7 @@ class SendReminderEmail(webapp2.RequestHandler):
     def get(self):
         """
         Send a reminder email to each User with email address with games
-        in progress. Email body includes a count of active games and
+        in progress. Email body includes a count of in-progress games and
         their urlsafe keys
         Called every day using a cron job
         """
@@ -26,7 +26,7 @@ class SendReminderEmail(webapp2.RequestHandler):
             q = user.all_games()
             games = q.filter(Game.game_over == False)
             if games.count() > 0:
-                subject = 'Active game reminder!'
+                subject = 'In Progress game reminder!'
                 body = 'Hello {}, you have {} games in progress.' \
                        ' Their keys are: {}'.\
                        format(user.name,
@@ -55,7 +55,7 @@ class SendMoveEmail(webapp2.RequestHandler):
         game = get_by_urlsafe(self.request.get('game_key'), Game)
 
         # Get hand of current player
-        if game.active == game.player_one:
+        if game.active_player == game.player_one:
             hand = game.hand_one
         else:
             hand = game.hand_two
