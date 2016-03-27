@@ -120,6 +120,18 @@ class StraightGinAPI(remote.Service):
         else:
             return game.hand_to_form("not_given")
 
+# Something's wrong with this function
+    def pre_move_verification(game, user):
+        if not game:
+            raise endpoints.NotFoundException('Game not found')
+        if game.game_over:
+            raise endpoints.NotFoundException('Game already over')
+        if not user:
+            raise endpoints.NotFoundException('User not found')
+        if user.key != game.active:
+            raise endpoints.BadRequestException('Not your turn!')
+        return
+
 
     @endpoints.method(request_message=MOVE_REQUEST,
                       response_message=HandForm,
@@ -128,21 +140,13 @@ class StraightGinAPI(remote.Service):
                       http_method='PUT')
     def start_move(self, request):
         """ Return mid_move Game state """
-        # authorization check before proceeding
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
-        if not game:
-            raise endpoints.NotFoundException('Game not found')
-        if game.game_over:
-            raise endpoints.NotFoundException('Game already over')
+        user = User.query(User.name == request.user_name).get()
+        pre_move_verification(game, user)
         if game.mid_move:
             raise endpoints.BadRequestException(
                 'Game is mid-move. "get_hand", select discard,'
                 ' then "end_move".')
-        user = User.query(User.name == request.user_name).get()
-        if not user:
-            raise endpoints.NotFoundException('User not found')
-        if user.key != game.active:
-            raise endpoints.BadRequestException('Not your turn!')
 
         # get hand of current player
         if game.active == game.player_one:
@@ -188,21 +192,13 @@ class StraightGinAPI(remote.Service):
                       http_method='PUT')
     def end_move(self, request):
         """ Return Game state when player completes a move """
-        # authorization check before proceeding
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
-        if not game:
-            raise endpoints.NotFoundException('Game not found')
-        if game.game_over:
-            raise endpoints.NotFoundException('Game already over')
+        user = User.query(User.name == request.user_name).get()
+        pre_move_verification(game, user)
         if not game.mid_move:
             raise endpoints.BadRequestException(
                 'You must "start_move" before you end it! Try "get_hand"'
                 ' to see active hand and instructions for next move.')
-        user = User.query(User.name == request.user_name).get()
-        if not user:
-            raise endpoints.NotFoundException('User not found')
-        if user.key != game.active:
-            raise endpoints.BadRequestException('Not your turn!')
 
         # get hand of current player
         if game.active == game.player_one:
