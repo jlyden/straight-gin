@@ -28,6 +28,7 @@ Straight Gin is a variation of the Gin Rummy card game. In the version implement
     - deal_hand: returns (1) "deal" of specified number of cards and (2) deck of remaining cards.
     - test_hand: verifies if all cards in a hand belong to runs or sets, and returns penalty if unused cards remain
     - clean_hand, group_consecutives, check_sets: helper functions for test_hand
+    - pre_move_verification, game_exists: helper functions for api.py
 
 ## Testing Suggestions:
 - You can easily change how many cards are dealt in a hand in constants.py. Big Hand = short game (but few players going "out" by choice).
