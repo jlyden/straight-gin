@@ -4,7 +4,7 @@
 ## Synopsis
 Back-end for Straight Gin card game with modifications described in Game Description below. Built for Google AppEngine - platform agnostic with support for variety of front-end clients.
 
-##Game Description:
+## Game Description:
 Straight Gin is a variation of the Gin Rummy card game. In the version implemented in this API, two players oppose each other in a single round. Players are dealt 10 cards each (but size of hand can be easily modified for a new game), and take turns drawing new cards trying to shape their hands into acceptable runs and sets, holding all cards in their hands until the end. When all cards in hand have been sorted into a run or set, a player can attempt to go "out." The first player to successfully go out wins. If a player attempts to go out, but the hand fails (not all cards belonging to a run or set), the opponent automatically wins. If neither player can go "out" before the deck runs out of cards to draw, whoever has the lowest penalty (cards NOT sorted into runs or sets) in their hand wins. Note that Aces (A) are LOW in Straight Gin (i.e. A = 1, never 14). Basic Gin Rummy instructions are available [here](https://en.wikipedia.org/wiki/Gin_rummy).
 
 ## Set-Up Instructions:
@@ -14,7 +14,7 @@ Straight Gin is a variation of the Gin Rummy card game. In the version implement
 4. Test API using localhost:8080/_ah/api/explorer (or whatever port # your localhost has available)
 5. App is also currently running at http://straightgin-1234.appspot.com/_ah/api/explorer
 
-##Files Included:
+## Files Included:
  - api.py: Contains endpoints and game play logic.
  - app.yaml: App configuration.
  - constants.py: Constants required by game (FULL_DECK, LIBRARY, HAND_SIZE).
@@ -33,7 +33,7 @@ Straight Gin is a variation of the Gin Rummy card game. In the version implement
 - You can easily change how many cards are dealt in a hand in constants.py. Big Hand = short game (but few players going "out" by choice).
 - "new_game" and "end_move" report GAME status, not hand status (so that each player's hand remains private). Especially at the beginning of a game, each player should run "get_hand" to see cards in hand before running "start_move", so that player_one can make informed decision about taking visible draw_card ("1") or hidden deck card ("2").
 
-##Endpoints Included:
+## Endpoints Included:
  - **create_user**
     - Path: 'user'
     - Method: POST
@@ -84,7 +84,7 @@ Straight Gin is a variation of the Gin Rummy card game. In the version implement
     - Description: Returns all Scores recorded by the provided player (ordered by lowest winner penalty first). Raises NotFoundException if User does not exist.
 
 
-##Additional endpoints
+## Additional endpoints
  - **cancel_game**
     - Path: 'game/{urlsafe_game_key}'
     - Method: DELETE
@@ -135,26 +135,22 @@ Straight Gin is a variation of the Gin Rummy card game. In the version implement
     - Description: Returns ScoreForms ordered by winner's lowest penalty. If number_of_results provided, that number of results is returned; otherwise, all scores returned in order.
 
 
-##Models Included:
+## Models and Forms Included:
+### User
  - **User**
     - Stores unique userName and (optional) email address.
     - Also keeps track of wins, total_games and win_rate.
-
- - **Game**
-    - Stores unique game states & history.
-    - Associated with User models via KeyProperties (player_one & player_two).
-
- - **Score**
-    - Records completed games, including associated penalties.
-    - Associated with User model via KeyProperty (winner & loser).
-    - Associated with Game model via KeyProperty (game)
-
-
-##Forms Included:
  - **UserForm**
     - Representation of User. Includes win_rate
  - **UserForms**
     - Container for one or more UserForm.
+ - **StringMessage**
+    - General purpose String container.
+
+### Game
+ - **Game**
+    - Stores unique game states & history.
+    - Associated with User models via KeyProperties (player_one & player_two).
  - **NewGameForm**
     - Used to create a new game (player_one, player_two)
  - **GameForm**
@@ -167,6 +163,14 @@ Straight Gin is a variation of the Gin Rummy card game. In the version implement
     - Representation of Game with history (urlsafe_key, player_one, player_two, game_over, history - record of game moves)
  - **MoveForm**
     - Inbound move form (user_name, move).
+ - **StringMessage**
+    - General purpose String container.
+
+### Score
+ - **Score**
+    - Records completed games, including associated penalties.
+    - Associated with User model via KeyProperty (winner & loser).
+    - Associated with Game model via KeyProperty (game)
  - **ScoreForm**
     - Representation of a completed game's Score (date, winner, loser, penalty_winner, penalty_loser).
  - **ScoreForms**
