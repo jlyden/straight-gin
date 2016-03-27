@@ -12,14 +12,11 @@ handlers:
 - url: /_ah/spi/.*
   script: api.api
 
-- url: /tasks/cache_average_attempts
-  script: main.app
-
 - url: /tasks/send_move_email
-  script: main.app
+  script: email.app
 
 - url: /crons/send_reminder
-  script: main.app
+  script: email.app
 
 libraries:
 - name: webapp2
