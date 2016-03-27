@@ -107,10 +107,11 @@ class Game(ndb.Model):
         form = GameForm(urlsafe_key=self.key.urlsafe(),
                         player_one=self.player_one.get().name,
                         player_two=self.player_two.get().name,
-                        active_player=self.active_player.get().name,
                         draw_card=string_card,
                         mid_move=self.mid_move,
                         game_over=self.game_over)
+        if not self.game_over:
+            form.active_player=self.active_player.get().name
         return form
 
     def hand_to_form(self, player):
@@ -266,7 +267,7 @@ class GameForm(messages.Message):
     urlsafe_key = messages.StringField(1, required=True)
     player_one = messages.StringField(2, required=True)
     player_two = messages.StringField(3, required=True)
-    active_player = messages.StringField(4, required=True)
+    active_player = messages.StringField(4)
     draw_card = messages.StringField(5, required=True)
     mid_move = messages.BooleanField(6, required=True)
     game_over = messages.BooleanField(7, required=True)

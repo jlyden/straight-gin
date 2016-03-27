@@ -20,7 +20,7 @@ Straight Gin is a variation of the Gin Rummy card game. In the version implement
  - constants.py: Constants required by game (FULL_DECK, LIBRARY, HAND_SIZE).
  - cron.yaml: Cronjob configuration.
  - design.txt: Explanation of design decisions.
- - main.py: Handler for cronjobs and taskqueue.
+ - emails.py: Handler for cronjobs and taskqueue which send e-mails to users.
  - models.py: Entity and Message definitions including helper methods.
  - README.md: This file.
  - utils.py: Contains helper functions:
@@ -118,7 +118,7 @@ Straight Gin is a variation of the Gin Rummy card game. In the version implement
     - Method: GET
     - Parameters: userName
     - Returns: GameForms with 1 or more GameForm inside.
-    - Description: Returns the current state of all the User's active games, with active games listed first.  Raises NotFoundException if user doesn't exist.
+    - Description: Returns the current state of all the User's games, with in progress games listed first.  Raises NotFoundException if user doesn't exist.
 
  - **get_user_rankings**
     - Path: 'user/rankings'
