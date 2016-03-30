@@ -237,7 +237,23 @@ def pre_move_verification(game, user):
             return True
 
 def game_exists(game):
+    """
+    Verify that game exists
+    """
     if not game:
         raise endpoints.NotFoundException('Game not found')
     else:
         return True
+
+
+def limit_set(input):
+    """
+    Validate input for get_high_scores
+    """
+    if not input.isdigit():
+        raise endpoints.BadRequestException('Number_of_results must '
+                                            'be an integer.')
+    if int(input) < 1:
+        raise endpoints.BadRequestException('Number_of_results requested must '
+                                            'be greater than zero.')
+    return True

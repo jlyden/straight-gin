@@ -14,7 +14,8 @@ from google.appengine.ext import ndb
 from models import User, Game, Score
 from models import UserForm, UserForms, NewGameForm, GameForm, GameForms, \
     HandForm, GameHistoryForm, MoveForm, ScoreForm, ScoreForms, StringMessage
-from utils import get_by_urlsafe, deal_hand, pre_move_verification, game_exists
+from utils import get_by_urlsafe, deal_hand, pre_move_verification, \
+    game_exists, limit_set
 
 NEW_GAME_REQUEST = endpoints.ResourceContainer(NewGameForm)
 GET_GAME_REQUEST = endpoints.ResourceContainer(
@@ -311,8 +312,9 @@ class StraightGinAPI(remote.Service):
         """ Return Scores ranked by lowest winner penalty """
         q = Score.query()
         if request.number_of_results:
-            limit = int(request.number_of_results)
-            scores = q.order(Score.penalty_winner).fetch(limit=limit)
+            if limit_set(request.number_of_results):
+                limit = int(request.number_of_results)
+                scores = q.order(Score.penalty_winner).fetch(limit=limit)
         else:
             scores = q.order(Score.penalty_winner)
         return ScoreForms(items=[score.score_to_form() for score in scores])
