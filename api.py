@@ -39,7 +39,7 @@ class StraightGinAPI(remote.Service):
     """ Game API """
     @endpoints.method(request_message=USER_REQUEST,
                       response_message=StringMessage,
-                      path='user',
+                      path='users',
                       name='create_user',
                       http_method='POST')
     def create_user(self, request):
@@ -55,7 +55,7 @@ class StraightGinAPI(remote.Service):
 
     @endpoints.method(request_message=NEW_GAME_REQUEST,
                       response_message=GameForm,
-                      path='game',
+                      path='games',
                       name='new_game',
                       http_method='POST')
     def new_game(self, request):
@@ -72,7 +72,7 @@ class StraightGinAPI(remote.Service):
 
     @endpoints.method(request_message=GET_GAME_REQUEST,
                       response_message=StringMessage,
-                      path='game/{urlsafe_game_key}/cancel',
+                      path='games/{urlsafe_game_key}',
                       name='cancel_game',
                       http_method='DELETE')
     def cancel_game(self, request):
@@ -87,7 +87,7 @@ class StraightGinAPI(remote.Service):
 
     @endpoints.method(request_message=GET_GAME_REQUEST,
                       response_message=GameForm,
-                      path='game/{urlsafe_game_key}',
+                      path='games/{urlsafe_game_key}',
                       name='get_game',
                       http_method='GET')
     def get_game(self, request):
@@ -98,7 +98,7 @@ class StraightGinAPI(remote.Service):
 
     @endpoints.method(request_message=GET_HAND_REQUEST,
                       response_message=HandForm,
-                      path='game/{urlsafe_game_key}/hand',
+                      path='games/{urlsafe_game_key}/hand',
                       name='get_hand',
                       http_method='GET')
     def get_hand(self, request):
@@ -117,7 +117,7 @@ class StraightGinAPI(remote.Service):
 
     @endpoints.method(request_message=MOVE_REQUEST,
                       response_message=HandForm,
-                      path='game/{urlsafe_game_key}/start-move',
+                      path='games/{urlsafe_game_key}/start-move',
                       name='start_move',
                       http_method='PUT')
     def start_move(self, request):
@@ -169,7 +169,7 @@ class StraightGinAPI(remote.Service):
 
     @endpoints.method(request_message=MOVE_REQUEST,
                       response_message=GameForm,
-                      path='game/{urlsafe_game_key}/end-move',
+                      path='games/{urlsafe_game_key}/end-move',
                       name='end_move',
                       http_method='PUT')
     def end_move(self, request):
@@ -223,7 +223,7 @@ class StraightGinAPI(remote.Service):
 
     @endpoints.method(request_message=GET_GAME_REQUEST,
                       response_message=GameHistoryForm,
-                      path='game/{urlsafe_game_key}/history',
+                      path='games/{urlsafe_game_key}/history',
                       name='get_game_history',
                       http_method='GET')
     def get_game_history(self, request):
@@ -234,7 +234,7 @@ class StraightGinAPI(remote.Service):
 
     @endpoints.method(request_message=GET_GAME_REQUEST,
                       response_message=ScoreForm,
-                      path='game/{urlsafe_game_key}/score',
+                      path='games/{urlsafe_game_key}/score',
                       name='get_game_score',
                       http_method='GET')
     def get_game_score(self, request):
@@ -250,7 +250,7 @@ class StraightGinAPI(remote.Service):
 
     @endpoints.method(request_message=USER_GAME_REQUEST,
                       response_message=GameForms,
-                      path='user/games',
+                      path='users/{user_name}/games',
                       name='get_user_games',
                       http_method='GET')
     def get_user_games(self, request):
@@ -275,7 +275,7 @@ class StraightGinAPI(remote.Service):
 
     @endpoints.method(request_message=USER_GAME_REQUEST,
                       response_message=ScoreForms,
-                      path='scores/user/{user_name}',
+                      path='users/{user_name}/scores',
                       name='get_user_scores',
                       http_method='GET')
     def get_user_scores(self, request):
@@ -290,7 +290,7 @@ class StraightGinAPI(remote.Service):
         return ScoreForms(items=[score.score_to_form() for score in scores])
 
     @endpoints.method(response_message=UserForms,
-                      path='user/rankings',
+                      path='users/rankings',
                       name='get_user_rankings',
                       http_method='GET')
     def get_user_rankings(self, request):
