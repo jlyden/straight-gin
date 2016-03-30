@@ -61,6 +61,9 @@ class StraightGinAPI(remote.Service):
     def new_game(self, request):
         """ Create new Game """
         # Make sure two players submitted in request exist
+        if request.player_one == request.player_two:
+                raise endpoints.BadRequestException('Game must involve '
+                    'two different players!')
         player_one = User.query(User.name == request.player_one).get()
         player_two = User.query(User.name == request.player_two).get()
         if not player_one or not player_two:
