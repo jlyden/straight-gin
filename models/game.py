@@ -12,14 +12,29 @@ from protorpc import messages
 from google.appengine.ext import ndb
 
 class Game(ndb.Model):
-    """ Game object """
+    """
+    Game object
+
+    Attributes:
+        player_one, player_two: users playing game
+        deck: deck of cards used in game, updated after every move
+        hand_one, hand_two: list of cards associated with each player
+        draw_card: "face-up" card, available for active player to take
+        active_player: user whose turn it is
+        instructions: move-specific instructions
+        mid_move: boolean reporting move state
+            (set to True at end of 'start_move';
+             set to False at end of 'end_move')
+        game_over: boolean reporting game state
+        history: record of all moves
+    """
     player_one = ndb.KeyProperty(required=True, kind='User')
     player_two = ndb.KeyProperty(required=True, kind='User')
     deck = ndb.PickleProperty(required=True)
     hand_one = ndb.PickleProperty(required=True)
     hand_two = ndb.PickleProperty(required=True)
-    draw_card = ndb.PickleProperty(required=True)   # Visible draw card
-    active_player = ndb.KeyProperty(required=True)  # User whose turn it is
+    draw_card = ndb.PickleProperty(required=True)
+    active_player = ndb.KeyProperty(required=True)
     instructions = ndb.StringProperty()
     mid_move = ndb.BooleanProperty(required=True, default=False)
     game_over = ndb.BooleanProperty(required=True, default=False)

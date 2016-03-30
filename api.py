@@ -6,7 +6,9 @@
 import logging
 import endpoints
 import random
+
 from protorpc import remote, messages
+
 from google.appengine.api import memcache
 from google.appengine.api import taskqueue
 from google.appengine.ext import ndb
@@ -38,6 +40,7 @@ USER_REQUEST = endpoints.ResourceContainer(
 @endpoints.api(name='gin', version='v1')
 class StraightGinAPI(remote.Service):
     """ Game API """
+
     @endpoints.method(request_message=USER_REQUEST,
                       response_message=StringMessage,
                       path='users',
