@@ -126,7 +126,7 @@ class StraightGinAPI(remote.Service):
                       response_message=HandForm,
                       path='games/{urlsafe_game_key}/start-move',
                       name='start_move',
-                      http_method='PUT')
+                      http_method='PUT, POST')
     def start_move(self, request):
         """ Return mid_move Game state """
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
@@ -178,7 +178,7 @@ class StraightGinAPI(remote.Service):
                       response_message=GameForm,
                       path='games/{urlsafe_game_key}/end-move',
                       name='end_move',
-                      http_method='PUT')
+                      http_method='PUT, POST')
     def end_move(self, request):
         """ Return Game state when player completes a move """
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
