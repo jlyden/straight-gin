@@ -11,7 +11,7 @@ from utils import get_by_urlsafe
 from models import User, Game
 
 
-class SendReminderEmail(webapp2.RequestHandler):
+class game_reminder_email(webapp2.RequestHandler):
     def get(self):
         """
         Send a reminder email to each User with email address with games
@@ -42,7 +42,7 @@ class SendReminderEmail(webapp2.RequestHandler):
                                body)
 
 
-class SendMoveEmail(webapp2.RequestHandler):
+class move_alert_email(webapp2.RequestHandler):
     def post(self):
         """
         Send a reminder email to player (if email address on file) each time
@@ -78,6 +78,6 @@ class SendMoveEmail(webapp2.RequestHandler):
             app_identity.get_application_id()), user.email, subject, body)
 
 app = webapp2.WSGIApplication([
-    ('/crons/send_reminder', SendReminderEmail),
-    ('/tasks/send_move_email', SendMoveEmail),
+    ('/crons/reminders', game_reminder_email),
+    ('/tasks/send_moves', move_alert_email),
 ], debug=True)

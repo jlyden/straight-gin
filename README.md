@@ -136,6 +136,25 @@ Straight Gin is a variation of the Gin Rummy card game. In the version implement
     - Description: Returns ScoreForms ordered by winner's lowest penalty. If number_of_results provided, that number of results is returned; otherwise, all scores returned in order.
 
 
+## Cronjob & Tasks Endpoints
+ - **game_reminder_email**
+   - Path: '/crons/reminders'
+   - Parameters: none
+   - Returns: none
+   - Description: Sends reminder email to each User with email address and
+       games in progress. Email body includes a count of in-progress games
+       and their urlsafe keys.
+
+ - **move_alert_email**
+   - Path: '/tasks/send_moves'
+   - Parameters: none
+   - Returns: none
+   - Description: Sends reminder email to player (if email address
+       on file) each time opponent completes a move in a game Email
+       body provides urlsafe key, player's hand, visible draw_card
+       and instructions.
+
+
 ## Models and Forms Included:
 ### User
  - **User**

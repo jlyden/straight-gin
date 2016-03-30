@@ -222,12 +222,13 @@ def check_sets(leftovers, long_runs):
                         long_runs.append(new_run)
     return leftovers, long_runs
 
+
 def pre_move_verification(game, user):
     """
     Return true if pass all verifications: is game over, is this correct user.
     """
     if game_exists(game):
-        if  game.game_over:
+        if game.game_over:
             raise endpoints.NotFoundException('Game already over')
         elif not user:
             raise endpoints.NotFoundException('User not found')
@@ -235,6 +236,7 @@ def pre_move_verification(game, user):
             raise endpoints.BadRequestException('Not your turn!')
         else:
             return True
+
 
 def game_exists(game):
     """

@@ -11,6 +11,7 @@ from score import Score, ScoreForm, ScoreForms
 from protorpc import messages
 from google.appengine.ext import ndb
 
+
 class Game(ndb.Model):
     """
     Game object
@@ -74,7 +75,7 @@ class Game(ndb.Model):
                         mid_move=self.mid_move,
                         game_over=self.game_over)
         if not self.game_over:
-            form.active_player=self.active_player.get().name
+            form.active_player = self.active_player.get().name
         return form
 
     def hand_to_form(self, player):

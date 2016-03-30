@@ -1,5 +1,6 @@
 # Full Stack Nanodegree Project 4 - Straight Gin
 # Built by jennifer lyden on provided Tic-Tac-Toe template
+# Game running at http://straightgin-1234.appspot.com/_ah/api/explorer
 #
 # API & basic game logic for Straight_Gin_API
 
@@ -67,7 +68,7 @@ class StraightGinAPI(remote.Service):
         # Make sure two players submitted in request exist
         if request.player_one == request.player_two:
                 raise endpoints.BadRequestException('Game must involve '
-                    'two different players!')
+                                                    'two different players!')
         player_one = User.query(User.name == request.player_one).get()
         player_two = User.query(User.name == request.player_two).get()
         if not player_one or not player_two:
@@ -120,7 +121,6 @@ class StraightGinAPI(remote.Service):
             # otherwise, return active player's hand (whose turn it is)
             else:
                 return game.hand_to_form("not_given")
-
 
     @endpoints.method(request_message=MOVE_REQUEST,
                       response_message=HandForm,
@@ -261,7 +261,8 @@ class StraightGinAPI(remote.Service):
                       name='get_user_games',
                       http_method='GET')
     def get_user_games(self, request):
-        """ Return all of an individual User's games - in progress and complete """
+        """ Return all of an individual User's games,
+            in progress and complete """
         user = User.query(User.name == request.user_name).get()
         if not user:
             raise endpoints.NotFoundException(
