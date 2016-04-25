@@ -1,5 +1,6 @@
 # Full Stack Nanodegree Project 4 - Straight Gin
-# Built by jennifer lyden on provided Tic-Tac-Toe template
+
+- Built by jennifer lyden on Udacity-provided Tic-Tac-Toe template
 
 ## Synopsis
 Back-end for Straight Gin card game with modifications described in Game Description below. Built for Google AppEngine - platform agnostic with support for variety of front-end clients.
